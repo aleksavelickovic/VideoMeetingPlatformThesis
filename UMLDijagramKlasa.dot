@@ -1,0 +1,190 @@
+digraph UMLDijagramKlasa {
+    graph [
+        rankdir=TB,
+        bgcolor="white",
+        pad="0.45",
+        nodesep="0.9",
+        ranksep="1.2",
+        splines=polyline,
+        fontname="DejaVu Sans",
+        label="UML klasni dijagram - domenski model",
+        labelloc=t,
+        fontsize=24
+    ];
+
+    node [
+        shape=plain,
+        fontname="DejaVu Sans"
+    ];
+
+    edge [
+        fontname="DejaVu Sans",
+        fontsize=11,
+        color="#334155",
+        arrowsize=0.8
+    ];
+
+    Entity [
+        label=<
+            <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="8" COLOR="#0f172a">
+                <TR><TD COLSPAN="2" BGCOLOR="#e2e8f0"><FONT POINT-SIZE="16"><B>&laquo;abstract&raquo; Entity</B></FONT></TD></TR>
+                <TR><TD ALIGN="LEFT">+ Id: long</TD><TD ALIGN="LEFT">+ DateUpdated: DateTime</TD></TR>
+                <TR><TD ALIGN="LEFT">+ DateCreated: DateTime</TD><TD ALIGN="LEFT">+ Deleted: bool</TD></TR>
+            </TABLE>
+        >
+    ];
+
+    ApiKey [
+        label=<
+            <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="8" COLOR="#0f172a">
+                <TR><TD COLSPAN="2" BGCOLOR="#dbeafe"><FONT POINT-SIZE="16"><B>ApiKey</B></FONT></TD></TR>
+                <TR><TD ALIGN="LEFT">+ Name: string</TD><TD ALIGN="LEFT">+ KeyHash: string</TD></TR>
+                <TR><TD ALIGN="LEFT">+ IsActive: bool</TD><TD ALIGN="LEFT">+ LastUsedAt: DateTime?</TD></TR>
+            </TABLE>
+        >
+    ];
+
+    Meeting [
+        label=<
+            <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="8" COLOR="#0f172a">
+                <TR><TD COLSPAN="2" BGCOLOR="#dbeafe"><FONT POINT-SIZE="16"><B>Meeting</B></FONT></TD></TR>
+                <TR><TD ALIGN="LEFT">+ RoomId: Guid</TD><TD ALIGN="LEFT">+ RecordingS3Key: string?</TD></TR>
+                <TR><TD ALIGN="LEFT">+ Title: string?</TD><TD ALIGN="LEFT">+ RecordingSizeBytes: long?</TD></TR>
+                <TR><TD ALIGN="LEFT">+ Status: MeetingStatus</TD><TD ALIGN="LEFT">+ RecordingDurationSeconds: int?</TD></TR>
+                <TR><TD ALIGN="LEFT">+ ScheduledAt: DateTime?</TD><TD ALIGN="LEFT">+ RecordingPresignedUrl: string?</TD></TR>
+                <TR><TD ALIGN="LEFT">+ DurationLimitMinutes: int</TD><TD ALIGN="LEFT">+ RecordingFormat: string</TD></TR>
+                <TR><TD ALIGN="LEFT">+ RecordingEnabled: bool</TD><TD ALIGN="LEFT">+ CallbackUrl: string</TD></TR>
+                <TR><TD ALIGN="LEFT">+ RecordingWidth: int</TD><TD ALIGN="LEFT">+ CallbackSecret: string</TD></TR>
+                <TR><TD ALIGN="LEFT">+ RecordingHeight: int</TD><TD ALIGN="LEFT">+ Metadata: string?</TD></TR>
+                <TR><TD ALIGN="LEFT">+ RecordingS3Bucket: string?</TD><TD ALIGN="LEFT">+ StartedAt: DateTime?</TD></TR>
+                <TR><TD ALIGN="LEFT">+ EndedAt: DateTime?</TD><TD ALIGN="LEFT">+ Participants: ICollection&lt;Participant&gt;</TD></TR>
+                <TR><TD ALIGN="LEFT">+ LiveKitEgressId: string?</TD><TD ALIGN="LEFT">+ CallbackAttempts: ICollection&lt;CallbackAttempt&gt;</TD></TR>
+            </TABLE>
+        >
+    ];
+
+    Participant [
+        label=<
+            <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="8" COLOR="#0f172a">
+                <TR><TD COLSPAN="2" BGCOLOR="#dbeafe"><FONT POINT-SIZE="16"><B>Participant</B></FONT></TD></TR>
+                <TR><TD ALIGN="LEFT">+ MeetingId: long</TD><TD ALIGN="LEFT">+ JoinedAt: DateTime?</TD></TR>
+                <TR><TD ALIGN="LEFT">+ Meeting: Meeting?</TD><TD ALIGN="LEFT">+ LeftAt: DateTime?</TD></TR>
+                <TR><TD ALIGN="LEFT">+ Name: string</TD><TD ALIGN="LEFT">+ LiveKitEgressId: string?</TD></TR>
+                <TR><TD ALIGN="LEFT">+ Role: ParticipantRole</TD><TD ALIGN="LEFT">+ RecordingS3Key: string?</TD></TR>
+                <TR><TD ALIGN="LEFT">+ Token: string</TD><TD ALIGN="LEFT">+ RecordingSizeBytes: long?</TD></TR>
+                <TR><TD ALIGN="LEFT">+ JoinLink: string</TD><TD ALIGN="LEFT">+ RecordingDurationSeconds: int?</TD></TR>
+                <TR><TD ALIGN="LEFT"></TD><TD ALIGN="LEFT">+ RecordingPresignedUrl: string?</TD></TR>
+            </TABLE>
+        >
+    ];
+
+    CallbackAttempt [
+        label=<
+            <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="8" COLOR="#0f172a">
+                <TR><TD COLSPAN="2" BGCOLOR="#dbeafe"><FONT POINT-SIZE="16"><B>CallbackAttempt</B></FONT></TD></TR>
+                <TR><TD ALIGN="LEFT">+ MeetingId: long</TD><TD ALIGN="LEFT">+ StatusCode: int?</TD></TR>
+                <TR><TD ALIGN="LEFT">+ Meeting: Meeting?</TD><TD ALIGN="LEFT">+ Success: bool</TD></TR>
+                <TR><TD ALIGN="LEFT">+ AttemptNumber: int</TD><TD ALIGN="LEFT">+ ErrorMessage: string?</TD></TR>
+            </TABLE>
+        >
+    ];
+
+    ParticipantRole [
+        label=<
+            <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="8" COLOR="#0f172a">
+                <TR><TD BGCOLOR="#fef3c7"><FONT POINT-SIZE="16"><B>&laquo;enum&raquo; ParticipantRole</B></FONT></TD></TR>
+                <TR><TD ALIGN="LEFT">Host</TD></TR>
+                <TR><TD ALIGN="LEFT">Guest</TD></TR>
+            </TABLE>
+        >
+    ];
+
+    MeetingStatus [
+        label=<
+            <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="8" COLOR="#0f172a">
+                <TR><TD BGCOLOR="#fef3c7"><FONT POINT-SIZE="16"><B>&laquo;enum&raquo; MeetingStatus</B></FONT></TD></TR>
+                <TR><TD ALIGN="LEFT">Scheduled</TD></TR>
+                <TR><TD ALIGN="LEFT">InProgress</TD></TR>
+                <TR><TD ALIGN="LEFT">Completed</TD></TR>
+                <TR><TD ALIGN="LEFT">Failed</TD></TR>
+                <TR><TD ALIGN="LEFT">CallbackFailed</TD></TR>
+                <TR><TD ALIGN="LEFT">RecordingFailed</TD></TR>
+            </TABLE>
+        >
+    ];
+
+    EndMeetingReason [
+        label=<
+            <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="8" COLOR="#0f172a">
+                <TR><TD BGCOLOR="#fef3c7"><FONT POINT-SIZE="16"><B>&laquo;enum&raquo; EndMeetingReason</B></FONT></TD></TR>
+                <TR><TD ALIGN="LEFT">Manual</TD></TR>
+                <TR><TD ALIGN="LEFT">Timeout</TD></TR>
+                <TR><TD ALIGN="LEFT">Error</TD></TR>
+            </TABLE>
+        >
+    ];
+
+    CallbackStatus [
+        label=<
+            <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="8" COLOR="#0f172a">
+                <TR><TD BGCOLOR="#fef3c7"><FONT POINT-SIZE="16"><B>&laquo;enum&raquo; CallbackStatus</B></FONT></TD></TR>
+                <TR><TD ALIGN="LEFT">Success</TD></TR>
+                <TR><TD ALIGN="LEFT">Failed</TD></TR>
+            </TABLE>
+        >
+    ];
+
+    { rank=same; ApiKey; Meeting; Participant; CallbackAttempt; }
+    { rank=same; ParticipantRole; MeetingStatus; EndMeetingReason; CallbackStatus; }
+
+    ApiKey -> Entity [
+        arrowhead=empty,
+        label="inherits"
+    ];
+    Meeting -> Entity [
+        arrowhead=empty,
+        label="inherits"
+    ];
+    Participant -> Entity [
+        arrowhead=empty,
+        label="inherits"
+    ];
+    CallbackAttempt -> Entity [
+        arrowhead=empty,
+        label="inherits"
+    ];
+
+    Meeting -> Participant [
+        arrowtail=odiamond,
+        arrowhead=none,
+        dir=both,
+        constraint=false,
+        tailport=e,
+        headport=w,
+        xlabel="1  Participants  0..*",
+        labeldistance=1.8
+    ];
+
+    Meeting -> CallbackAttempt [
+        arrowtail=odiamond,
+        arrowhead=none,
+        dir=both,
+        constraint=false,
+        tailport=e,
+        headport=w,
+        xlabel="1  CallbackAttempts  0..*",
+        labeldistance=1.8
+    ];
+
+    Meeting -> MeetingStatus [
+        style=dashed,
+        arrowhead=open,
+        label="Status"
+    ];
+
+    Participant -> ParticipantRole [
+        style=dashed,
+        arrowhead=open,
+        label="Role"
+    ];
+}

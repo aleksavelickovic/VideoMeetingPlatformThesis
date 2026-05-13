@@ -1,0 +1,25 @@
+port: 7880
+rtc:
+  tcp_port: 7881
+  port_range_start: 50000
+  port_range_end: 50200
+  use_external_ip: false
+
+redis:
+  address: redis:6379
+
+keys:
+  devkey: devsecret12345678901234567890123
+
+room:
+  empty_timeout: 300
+  max_participants: 6
+
+logging:
+  level: info
+  sample: true
+
+webhook:
+  urls:
+    - http://api:5000/webhook/livekit
+  api_key: devkey

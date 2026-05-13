@@ -1,0 +1,43 @@
+# ─── .NET ─────────────────────────────────────────────────────────────────────
+bin/
+obj/
+*.user
+*.suo
+.vs/
+_ReSharper*/
+*.DotSettings.user
+*.nupkg
+*.snupkg
+project.lock.json
+artifacts/
+
+# ─── Node / Frontend ──────────────────────────────────────────────────────────
+node_modules/
+dist/
+.vite/
+*.tsbuildinfo
+
+# ─── Environment / Secrets ────────────────────────────────────────────────────
+.env
+!.env.example
+
+# ─── macOS ────────────────────────────────────────────────────────────────────
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# ─── IDE ──────────────────────────────────────────────────────────────────────
+.idea/
+*.swp
+*.swo
+.vscode/settings.json
+
+# ─── Docker volumes (lokalni data folderi ako postoje) ────────────────────────
+postgres_data/
+redis_data/
+minio_data/
+
+# ─── Logs ─────────────────────────────────────────────────────────────────────
+*.log
+logs/
+/api_java/target/

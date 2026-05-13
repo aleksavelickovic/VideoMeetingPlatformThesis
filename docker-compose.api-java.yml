@@ -1,0 +1,173 @@
+services:
+  api:
+    build:
+      context: ./api_java
+      dockerfile: Dockerfile
+    ports:
+      - "5001:5000"
+    environment:
+      - SERVER_PORT=5000
+      - DATABASE_URL=jdbc:postgresql://postgres:5432/lillyrecorder
+      - DATABASE_USERNAME=postgres
+      - DATABASE_PASSWORD=postgres123
+      - REDIS_URL=redis://redis:6379
+      - FRONTEND_URL=http://localhost:3002
+      - LIVEKIT_URL=http://livekit:7880
+      - LIVEKIT_API_KEY=devkey
+      - LIVEKIT_API_SECRET=devsecret12345678901234567890123
+      - S3_BUCKET=lilly-recordings
+      - S3_ENDPOINT=http://minio:9000
+      - S3_ACCESS_KEY=minioadmin
+      - S3_SECRET_KEY=minioadmin
+      - S3_REGION=us-east-1
+      - S3_PRESIGNED_URL_EXPIRY_HOURS=24
+      - API_AUTH_JWT_SECRET=change-this-secret-change-this-secret
+      - TZ=Europe/Belgrade
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      livekit:
+        condition: service_started
+      minio:
+        condition: service_started
+    networks:
+      - lilly-net
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: http://localhost:5001
+        VITE_LIVEKIT_URL: ws://localhost:7880
+        VITE_API_KEY: test123
+    ports:
+      - "3002:3000"
+    environment:
+      - VITE_API_URL=http://localhost:5001
+      - VITE_LIVEKIT_URL=ws://localhost:7880
+      - VITE_API_KEY=test123
+      - TZ=Europe/Belgrade
+    depends_on:
+      - api
+    networks:
+      - lilly-net
+    restart: unless-stopped
+
+  livekit:
+    image: livekit/livekit-server:latest
+    command: --config /etc/livekit.yaml
+    ports:
+      - "7880:7880"
+      - "7881:7881"
+      - "50000-50200:50000-50200/udp"
+    environment:
+      - TZ=Europe/Belgrade
+    volumes:
+      - ./livekit.yaml:/etc/livekit.yaml
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - lilly-net
+    restart: unless-stopped
+
+  egress:
+    image: livekit/egress:latest
+    cpus: "8"
+    mem_limit: 5g
+    environment:
+      - EGRESS_CONFIG_BODY={"api_key":"devkey","api_secret":"devsecret12345678901234567890123","ws_url":"ws://livekit:7880","redis":{"address":"redis:6379"},"s3":{"access_key":"minioadmin","secret":"minioadmin","region":"us-east-1","endpoint":"http://minio:9000","bucket":"lilly-recordings"},"max_concurrent_requests":5,"cpu_cost":{"room_composite_cpu_cost":0.1,"participant_cpu_cost":0.1,"web_cpu_cost":0.1}}
+      - TZ=Europe/Belgrade
+    cap_add:
+      - SYS_ADMIN
+    shm_size: "3gb"
+    depends_on:
+      - livekit
+      - redis
+      - minio
+    networks:
+      - lilly-net
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: lillyrecorder
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+      TZ: Europe/Belgrade
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - lilly-net
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    environment:
+      - TZ=Europe/Belgrade
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - lilly-net
+    restart: unless-stopped
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+      TZ: Europe/Belgrade
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - lilly-net
+    restart: unless-stopped
+
+  minio-init:
+    image: minio/mc:latest
+    environment:
+      - TZ=Europe/Belgrade
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+        sleep 5;
+        mc alias set local http://minio:9000 minioadmin minioadmin;
+        mc mb local/lilly-recordings --ignore-existing;
+        mc policy set public local/lilly-recordings;
+        exit 0;
+      "
+    networks:
+      - lilly-net
+
+networks:
+  lilly-net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
