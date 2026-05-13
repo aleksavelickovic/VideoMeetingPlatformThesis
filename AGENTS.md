@@ -22,7 +22,7 @@ For React/TypeScript, follow the existing style: 4-space indentation, single quo
 
 ## Testing Guidelines
 
-Manually verify meeting creation, pre-join, in-call controls, recording behavior, and post-call flows. No automated unit, integration, or end-to-end tests are needed. Never write tests of any kind
+Manually verify meeting creation, pre-join, in-call controls, recording behavior, and post-call flows. No automated unit, integration, or end-to-end tests are needed. Never write tests of any kind.
 
 ## Commit & Pull Request Guidelines
 
