@@ -2,43 +2,32 @@
 
 ## Project Structure & Module Organization
 
-`api/LillyRecorder/` contains the ASP.NET Core backend, organized by `Controller`, `Service`, `Repository`, `Converter`,
-`Model`, `Middlewares`, and `Jobs`. `api/LillyRecorder.Tests/` holds xUnit tests for backend behavior. `web/src/` is the
-Vite React client, split into `pages`, `components`, `hooks`, `api`, `types`, and `styles`. Infrastructure and local ops
-live in `docker-compose.yml`, `livekit.yaml`, and `monitoring/`.
+This repository contains a Spring Boot backend in `api_java/` and a Vite React frontend in `web/`. Backend code lives under `api_java/src/main/java/com/lilly/recorder/`, organized by `controller`, `service`, `repository`, `entity`, `dto`, `mapper`, `security`, and `config`; resources are in `api_java/src/main/resources/`. Frontend source is in `web/src/`, split into `pages`, `components`, `hooks`, `api`, `types`, `styles`, `utils`, and `constants`. Root infrastructure includes `docker-compose.yml`, `livekit.yaml`, `.env.example`, and UML/specification assets.
 
 ## Build, Test, and Development Commands
 
-- `docker compose up --build` - start the full local stack: API, web, LiveKit, Postgres, Redis, MinIO, and monitoring.
-- `dotnet build api/LillyRecorder.sln` - compile the backend and test projects.
-- `dotnet run --project api/LillyRecorder/LillyRecorder.csproj` - run the API locally on port `5001`.
-- `dotnet test api/LillyRecorder.sln --collect:"XPlat Code Coverage"` - run xUnit tests and write coverage artifacts.
-- `cd web && npm install && npm run dev` - start the frontend dev server on port `3000`.
-- `cd web && npm run build` - run TypeScript checks and produce the production bundle.
+- `docker compose up --build` starts API, web, LiveKit, egress, Postgres, Redis, and MinIO.
+- `cd api_java && mvn spring-boot:run` runs the backend locally using `application.yml` and environment overrides.
+- `cd api_java && mvn -DskipTests package` builds the backend JAR.
+- `cd web && npm install` installs frontend dependencies from `package-lock.json`.
+- `cd web && npm run dev` starts the Vite dev server.
+- `cd web && npm run build` runs TypeScript checks and creates the production bundle.
+- `cd web && npm run preview` serves the built frontend locally.
 
 ## Coding Style & Naming Conventions
 
-Use 4 spaces in C#. In TypeScript and TSX, keep spacing consistent with the file you are editing and avoid reformat-only
-diffs. C# types, DTOs, services, and controllers use PascalCase; interfaces start with `I`; async methods end with
-`Async`. React pages and components use PascalCase filenames, hooks use `use*`, and shared helpers use descriptive
-camelCase names. Prefer single quotes in TS/TSX and keep Tailwind-heavy JSX readable.
+Use Java 21 and Spring Boot conventions: 4-space indentation, constructor injection, PascalCase classes, camelCase members, and suffixes such as `Controller`, `Service`, `Repository`, `Dto`, and `Mapper`. Keep packages under `com.lilly.recorder`.
+
+For React/TypeScript, follow the existing style: 4-space indentation, single quotes, no semicolons, PascalCase component/page filenames, and `use*` hook names. Keep API calls in `web/src/api/` and shared types in `web/src/types/`.
 
 ## Testing Guidelines
 
-Backend tests use xUnit and Moq under `api/LillyRecorder.Tests/`. Name test files `*Tests.cs` and use method names like
-`Action_State_ExpectedResult`. Add or update tests when changing controllers, converters, services, or webhook/recording
-flows. No frontend test suite is committed yet, so PRs that touch UI flows should include manual verification for
-meeting creation, pre-join, in-call, and recording behavior.
+Manually verify meeting creation, pre-join, in-call controls, recording behavior, and post-call flows. No automated unit, integration, or end-to-end tests are needed. Never write tests of any kind
 
 ## Commit & Pull Request Guidelines
 
-Recent history uses bracketed prefixes such as `[EDIT]`, `[FIX]`, and `[DOCS]`; keep that pattern and write the
-remainder in imperative mood. PRs should describe scope, linked issue or task, config changes, and exact verification
-steps. Include screenshots or short recordings for UI changes, and call out any Docker or environment updates reviewers
-must apply.
+Recent commits use bracketed prefixes such as `[EDIT]` and `[DELETE]`. Continue that pattern with short imperative subjects, for example `[EDIT] Update meeting cleanup logic`. PRs should describe scope, config changes, and verification steps. Include screenshots or recordings for UI changes.
 
-## Configuration & Secrets
+## Security & Configuration Tips
 
-Use `.env.example` and `web/.env.example` as templates. Do not commit real API keys, LiveKit secrets, database
-passwords, or S3 credentials. For local setup, treat `docker-compose.yml` as the source of truth for service names,
-ports, and default development wiring.
+Use `.env.example` and `web/.env.example` as templates only. Do not commit real API keys, LiveKit secrets, JWT secrets, database passwords, or S3 credentials. Treat `docker-compose.yml` as the source of truth for local service names and ports.
