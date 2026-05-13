@@ -1,0 +1,60 @@
+server:
+  port: 5001
+
+spring:
+  application:
+    name: lilly-recorder-java
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/lillyrecorder}
+    username: ${DATABASE_USERNAME:postgres}
+    password: ${DATABASE_PASSWORD:postgres123}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+        format_sql: true
+  data:
+    redis:
+      url: ${REDIS_URL:redis://localhost:6379}
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+springdoc:
+  swagger-ui:
+    path: /swagger
+
+logging:
+  level:
+    root: INFO
+    com.lilly.recorder: TRACE
+    org.springframework.web: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE
+
+system-configuration:
+  frontend-url: ${FRONTEND_URL:http://localhost:3002}
+  redis-url: ${REDIS_URL:redis://localhost:6379}
+  live-kit:
+    url: ${LIVEKIT_URL:http://localhost:7880}
+    api-key: ${LIVEKIT_API_KEY:devkey}
+    api-secret: ${LIVEKIT_API_SECRET:devsecret12345678901234567890123}
+  s3:
+    bucket: ${S3_BUCKET:lilly-recordings}
+    endpoint: ${S3_ENDPOINT:http://localhost:9000}
+    access-key: ${S3_ACCESS_KEY:minioadmin}
+    secret-key: ${S3_SECRET_KEY:minioadmin}
+    region: ${S3_REGION:us-east-1}
+    presigned-url-expiry-hours: ${S3_PRESIGNED_URL_EXPIRY_HOURS:24}
+  recording-defaults:
+    framerate: ${RECORDING_FRAMERATE:15}
+    video-bitrate: ${RECORDING_VIDEO_BITRATE:2000}
+    audio-bitrate: ${RECORDING_AUDIO_BITRATE:64}
+    audio-frequency: ${RECORDING_AUDIO_FREQUENCY:44100}
+  auth:
+    jwt-secret: ${API_AUTH_JWT_SECRET:change-this-secret-change-this-secret}
+    jwt-expiration-hours: ${API_AUTH_JWT_EXPIRATION_HOURS:24}

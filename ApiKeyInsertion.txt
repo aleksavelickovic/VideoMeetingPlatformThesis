@@ -1,0 +1,5 @@
+  INSERT INTO api_keys
+  (name, key_hash, is_active, last_used_at, date_created, date_updated, deleted)
+  VALUES
+  ('dev-key', '$2a$08$9D0yruFeD8JHH5RMMKfuduM.z11dkxMo8gpZagHcBEA0s9mRlRynq', true, NOW(), NOW(), NOW(), false);
+
