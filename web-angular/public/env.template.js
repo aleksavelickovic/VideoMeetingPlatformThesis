@@ -1,0 +1,5 @@
+window.__env = {
+  VITE_API_URL: '${VITE_API_URL}',
+  VITE_LIVEKIT_URL: '${VITE_LIVEKIT_URL}',
+  VITE_API_KEY: '${VITE_API_KEY}'
+};

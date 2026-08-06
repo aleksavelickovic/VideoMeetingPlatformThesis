@@ -36,18 +36,35 @@ services:
       - lilly-net
     restart: unless-stopped
 
-  web:
+#  web:
+#    build:
+#      context: ./web
+#      dockerfile: Dockerfile
+#      args:
+#        VITE_API_URL: http://localhost:5001
+#        VITE_LIVEKIT_URL: ws://localhost:7880
+#        VITE_API_KEY: test123
+#    ports:
+#      - "3002:3000"
+#    environment:
+#      - VITE_API_URL=http://localhost:5001
+#      - VITE_LIVEKIT_URL=ws://localhost:7880
+#      - VITE_API_KEY=test123
+#      - TZ=Europe/Belgrade
+#    depends_on:
+#      - api
+#    networks:
+#      - lilly-net
+#    restart: unless-stopped
+
+  web-angular:
     build:
-      context: ./web
+      context: ./web-angular
       dockerfile: Dockerfile
-      args:
-        VITE_API_URL: http://localhost:5001
-        VITE_LIVEKIT_URL: ws://localhost:7880
-        VITE_API_KEY: test123
     ports:
       - "3002:3000"
     environment:
-      - VITE_API_URL=http://localhost:5001
+      - VITE_API_URL=/api
       - VITE_LIVEKIT_URL=ws://localhost:7880
       - VITE_API_KEY=test123
       - TZ=Europe/Belgrade
