@@ -41,3 +41,6 @@ minio_data/
 *.log
 logs/
 /api_java/target/
+/UI_Photographs/
+/design_prompt.txt
+/FE_Migration_Plan.md
