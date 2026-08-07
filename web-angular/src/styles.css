@@ -2,17 +2,63 @@
 @tailwind components;
 @tailwind utilities;
 
-html, body { min-height: 100%; background: #0d1119; }
-body { margin: 0; color: #eef4ff; font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-button, input, select, textarea { font: inherit; }
-button { cursor: pointer; }
-button:disabled { cursor: not-allowed; }
-* { box-sizing: border-box; }
-::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-thumb { background: #26354e; border-radius: 999px; }
-.session-card { @apply rounded-xl border border-line bg-panel shadow-panel; }
-.section-label { @apply text-[11px] font-semibold uppercase tracking-[.12em] text-muted; }
-.field-label { @apply mb-1.5 block text-xs font-medium text-[#8ba5cd]; }
-.field-control { @apply w-full rounded-lg border border-line bg-field px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-[#60718c] focus:border-brand focus:ring-2 focus:ring-brand/20; }
-.btn-primary { @apply inline-flex items-center justify-center gap-2 rounded-lg bg-brand px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#3475e5] disabled:opacity-50; }
-.btn-secondary { @apply inline-flex items-center justify-center gap-2 rounded-lg border border-line bg-transparent px-4 py-3 text-sm font-medium text-[#9cb3d6] transition hover:border-brand hover:text-white; }
+html, body {
+    min-height: 100%;
+    background: #0d1119;
+}
+
+body {
+    margin: 0;
+    color: #eef4ff;
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+button, input, select, textarea {
+    font: inherit;
+}
+
+button {
+    cursor: pointer;
+}
+
+button:disabled {
+    cursor: not-allowed;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #26354e;
+    border-radius: 999px;
+}
+
+.session-card {
+    @apply rounded-xl border border-line bg-panel shadow-panel;
+}
+
+.section-label {
+    @apply text-[11px] font-semibold uppercase tracking-[.12em] text-muted;
+}
+
+.field-label {
+    @apply mb-1.5 block text-xs font-medium text-[#8ba5cd];
+}
+
+.field-control {
+    @apply w-full rounded-lg border border-line bg-field px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-[#60718c] focus:border-brand focus:ring-2 focus:ring-brand/20;
+}
+
+.btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-brand px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#3475e5] disabled:opacity-50;
+}
+
+.btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-line bg-transparent px-4 py-3 text-sm font-medium text-[#9cb3d6] transition hover:border-brand hover:text-white;
+}
