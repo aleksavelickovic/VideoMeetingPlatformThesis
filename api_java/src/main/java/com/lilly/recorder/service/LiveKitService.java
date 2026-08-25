@@ -4,7 +4,6 @@ import com.lilly.recorder.config.SystemConfigurationProperties;
 import io.livekit.server.AccessToken;
 import io.livekit.server.CanPublish;
 import io.livekit.server.CanSubscribe;
-import io.livekit.server.EncodedOutputs;
 import io.livekit.server.EgressServiceClient;
 import io.livekit.server.RoomJoin;
 import io.livekit.server.RoomName;
@@ -17,6 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.lang.reflect.Method;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @Service
 public class LiveKitService {
@@ -117,18 +118,27 @@ public class LiveKitService {
                     .setS3(buildS3Upload(s3Bucket))
                     .build();
 
-            EncodedOutputs outputs = new EncodedOutputs(fileOutput, null, null, null);
-            return client.startParticipantEgress(
+            String templateUrl = properties.getEgressTemplateUrl()
+                    + "?room=" + encode(roomName)
+                    + "&identity=" + encode(participantIdentity);
+
+            return client.startRoomCompositeEgress(
                     roomName,
-                    participantIdentity,
-                    outputs,
-                    false,
+                    fileOutput,
+                    "grid",
                     null,
-                    buildEncodingOptions(width, height)
+                    buildEncodingOptions(width, height),
+                    false,
+                    false,
+                    templateUrl
             ).execute().body().getEgressId();
         } catch (Exception ex) {
-            throw new IllegalStateException("Failed to start participant recording for participant: " + participantIdentity, ex);
+            throw new IllegalStateException("Failed to start participant composite recording for participant: " + participantIdentity, ex);
         }
+    }
+
+    private String encode(String value) {
+        return URLEncoder.encode(value, StandardCharsets.UTF_8);
     }
 
     public LivekitEgress.EgressInfo stopRecording(String egressId) {

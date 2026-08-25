@@ -23,7 +23,6 @@ public class S3Service {
                 .signatureDuration(Duration.ofHours(properties.getS3().getPresignedUrlExpiryHours()))
                 .getObjectRequest(GetObjectRequest.builder().bucket(bucket).key(key).build())
                 .build();
-        return s3Presigner.presignGetObject(request).url().toString()
-                .replace("https://minio:9000", "http://localhost:9000");
+        return s3Presigner.presignGetObject(request).url().toString();
     }
 }

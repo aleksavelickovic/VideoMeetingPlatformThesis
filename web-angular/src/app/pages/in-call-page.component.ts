@@ -131,7 +131,11 @@ export class InCallPageComponent implements OnInit, OnDestroy {
                 this.timer = setInterval(() => this.elapsed.update(value => value + 1), 1000)
             }
         })
-        await this.livekit.connect(this.token, this.route.snapshot.queryParamMap.get('name') || this.identity.name, this.route.snapshot.queryParamMap.get('camera') || undefined, this.route.snapshot.queryParamMap.get('microphone') || undefined)
+        const cameraEnabled = this.route.snapshot.queryParamMap.get('cameraEnabled') !== 'false'
+        const microphoneEnabled = this.route.snapshot.queryParamMap.get('microphoneEnabled') !== 'false'
+        this.cameraOff.set(!cameraEnabled)
+        this.muted.set(!microphoneEnabled)
+        await this.livekit.connect(this.token, this.route.snapshot.queryParamMap.get('name') || this.identity.name, this.route.snapshot.queryParamMap.get('camera') || undefined, this.route.snapshot.queryParamMap.get('microphone') || undefined, cameraEnabled, microphoneEnabled)
         this.livekit.room()?.on(RoomEvent.Disconnected, () => void this.finish())
     }
 

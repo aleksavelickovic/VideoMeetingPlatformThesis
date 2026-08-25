@@ -12,11 +12,13 @@ services:
       - DATABASE_PASSWORD=postgres123
       - REDIS_URL=redis://redis:6379
       - FRONTEND_URL=http://localhost:3002
+      - EGRESS_TEMPLATE_URL=http://web-angular:3000/egress/participant
       - LIVEKIT_URL=http://livekit:7880
       - LIVEKIT_API_KEY=devkey
       - LIVEKIT_API_SECRET=devsecret12345678901234567890123
       - S3_BUCKET=lilly-recordings
       - S3_ENDPOINT=http://minio:9000
+      - S3_PUBLIC_ENDPOINT=http://localhost:9000
       - S3_ACCESS_KEY=minioadmin
       - S3_SECRET_KEY=minioadmin
       - S3_REGION=us-east-1

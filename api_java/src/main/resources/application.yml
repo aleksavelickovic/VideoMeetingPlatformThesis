@@ -38,6 +38,7 @@ logging:
 
 system-configuration:
   frontend-url: ${FRONTEND_URL:http://localhost:3002}
+  egress-template-url: ${EGRESS_TEMPLATE_URL:http://localhost:3002/egress/participant}
   redis-url: ${REDIS_URL:redis://localhost:6379}
   live-kit:
     url: ${LIVEKIT_URL:http://localhost:7880}
@@ -46,6 +47,7 @@ system-configuration:
   s3:
     bucket: ${S3_BUCKET:lilly-recordings}
     endpoint: ${S3_ENDPOINT:http://localhost:9000}
+    public-endpoint: ${S3_PUBLIC_ENDPOINT:http://localhost:9000}
     access-key: ${S3_ACCESS_KEY:minioadmin}
     secret-key: ${S3_SECRET_KEY:minioadmin}
     region: ${S3_REGION:us-east-1}

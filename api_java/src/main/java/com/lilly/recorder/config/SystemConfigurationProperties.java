@@ -9,6 +9,7 @@ import org.springframework.validation.annotation.Validated;
 public class SystemConfigurationProperties {
 
     private String frontendUrl = "http://localhost:3002";
+    private String egressTemplateUrl = "http://localhost:3002/egress/participant";
     private String redisUrl = "redis://localhost:6379";
     private final LiveKit liveKit = new LiveKit();
     private final S3 s3 = new S3();
@@ -21,6 +22,14 @@ public class SystemConfigurationProperties {
 
     public void setFrontendUrl(String frontendUrl) {
         this.frontendUrl = frontendUrl;
+    }
+
+    public String getEgressTemplateUrl() {
+        return egressTemplateUrl;
+    }
+
+    public void setEgressTemplateUrl(String egressTemplateUrl) {
+        this.egressTemplateUrl = egressTemplateUrl;
     }
 
     public String getRedisUrl() {
@@ -86,6 +95,8 @@ public class SystemConfigurationProperties {
         @NotBlank
         private String endpoint;
         @NotBlank
+        private String publicEndpoint;
+        @NotBlank
         private String accessKey;
         @NotBlank
         private String secretKey;
@@ -106,6 +117,14 @@ public class SystemConfigurationProperties {
 
         public void setEndpoint(String endpoint) {
             this.endpoint = endpoint;
+        }
+
+        public String getPublicEndpoint() {
+            return publicEndpoint;
+        }
+
+        public void setPublicEndpoint(String publicEndpoint) {
+            this.publicEndpoint = publicEndpoint;
         }
 
         public String getAccessKey() {

@@ -3,7 +3,6 @@ import {FormArray, FormBuilder, ReactiveFormsModule, Validators} from '@angular/
 import {Router} from '@angular/router'
 import {finalize} from 'rxjs'
 import {
-    Calendar,
     ChevronDown,
     FileUp,
     LucideAngularModule,
@@ -16,6 +15,7 @@ import {
 import {MeetingApiService} from '../core/meeting-api.service'
 import {MeetingStateService} from '../core/meeting-state.service'
 import {CreateMeetingDto, ParticipantRole} from '../models/meeting.models'
+import {DateTimePickerComponent} from '../shared/date-time-picker.component'
 import {SessionsHeaderComponent} from '../shared/sessions-header.component'
 
 const presets = [{label: 'HD (1280 × 720)', width: 1280, height: 720}, {
@@ -26,7 +26,7 @@ const presets = [{label: 'HD (1280 × 720)', width: 1280, height: 720}, {
 
 @Component({
     selector: 'app-create-meeting-page',
-    imports: [ReactiveFormsModule, SessionsHeaderComponent, LucideAngularModule],
+    imports: [ReactiveFormsModule, DateTimePickerComponent, SessionsHeaderComponent, LucideAngularModule],
     template: `
         <div class="min-h-screen bg-page">
             <app-sessions-header/>
@@ -42,11 +42,7 @@ const presets = [{label: 'HD (1280 × 720)', width: 1280, height: 720}, {
                     <section class="session-card p-5"><h2 class="section-label border-b border-[#1c293d] pb-3">
                         Schedule</h2>
                         <div class="mt-4 grid gap-4 sm:grid-cols-[1fr_120px]"><label><span class="field-label">Scheduled at</span>
-                            <div class="relative"><input type="datetime-local" formControlName="scheduledAt"
-                                                         class="field-control pr-9">
-                                <lucide-icon [img]="Calendar"
-                                             class="pointer-events-none absolute right-3 top-3 size-4 text-muted"/>
-                            </div>
+                            <app-date-time-picker formControlName="scheduledAt"/>
                         </label><label><span class="field-label">Duration (minutes)</span><input type="number" min="1"
                                                                                                  max="480"
                                                                                                  formControlName="durationLimitMinutes"
@@ -63,7 +59,7 @@ const presets = [{label: 'HD (1280 × 720)', width: 1280, height: 720}, {
                     </section>
                     <section class="session-card p-5">
                         <div class="flex items-center justify-between border-b border-[#1c293d] pb-3"><h2
-                                class="section-label">Metadata</h2><label
+                                class="section-label">Additional Metadata (optional)</h2><label
                                 class="flex cursor-pointer items-center gap-1 text-xs text-[#86a5d2]">
                             <lucide-icon [img]="FileUp" class="size-3.5"/>
                             Import JSON<input type="file" accept="application/json,.json" class="hidden"
@@ -159,7 +155,6 @@ export class CreateMeetingPageComponent {
         participants: this.fb.array([this.participant('host'), this.participant('guest'), this.participant('guest')])
     })
     recordingEnabled = false
-    protected readonly Calendar = Calendar;
     protected readonly FileUp = FileUp;
     protected readonly Plus = Plus;
     protected readonly Trash2 = Trash2;

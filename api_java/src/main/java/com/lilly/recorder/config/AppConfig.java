@@ -48,7 +48,7 @@ public class AppConfig {
     @Bean
     public S3Presigner s3Presigner(SystemConfigurationProperties properties) {
         return S3Presigner.builder()
-                .endpointOverride(URI.create(properties.getS3().getEndpoint()))
+                .endpointOverride(URI.create(properties.getS3().getPublicEndpoint()))
                 .region(Region.of(properties.getS3().getRegion()))
                 .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(
                         properties.getS3().getAccessKey(),

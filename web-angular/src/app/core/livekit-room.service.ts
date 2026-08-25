@@ -14,7 +14,8 @@ export class LiveKitRoomService {
     readonly recording = signal(false)
     readonly error = signal<string | null>(null)
 
-    async connect(token: string, name: string, cameraId?: string, microphoneId?: string): Promise<void> {
+    async connect(token: string, name: string, cameraId?: string, microphoneId?: string,
+                  cameraEnabled = true, microphoneEnabled = true): Promise<void> {
         this.disconnect()
         const room = new Room({
             videoCaptureDefaults: cameraId ? {deviceId: cameraId} : undefined,
@@ -56,7 +57,10 @@ export class LiveKitRoomService {
                 return
             }
             if (name.trim() && name.trim() !== room.localParticipant.name) await room.localParticipant.setName(name.trim())
-            await Promise.all([room.localParticipant.setCameraEnabled(true), room.localParticipant.setMicrophoneEnabled(true)])
+            await Promise.all([
+                room.localParticipant.setCameraEnabled(cameraEnabled),
+                room.localParticipant.setMicrophoneEnabled(microphoneEnabled)
+            ])
             this.connected.set(room.state === ConnectionState.Connected)
             this.recording.set(room.isRecording)
             sync()
