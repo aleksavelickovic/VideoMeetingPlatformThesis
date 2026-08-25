@@ -256,7 +256,7 @@ export function CreateMeetingPage() {
                         </Field>
                     </div>
 
-                    <Field icon={<FileJson className="w-4 h-4 text-brand"/>} label="Metadata (optional)">
+                    <Field icon={<FileJson className="w-4 h-4 text-brand"/>} label="Additional Metadata (optional)">
                         <input type="text" value={metadata} onChange={e => setMetadata(e.target.value)}
                                placeholder="Meeting tags, external IDs..."
                                className="w-full bg-transparent text-text-primary text-sm outline-none"/>

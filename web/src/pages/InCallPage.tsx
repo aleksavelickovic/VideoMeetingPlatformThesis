@@ -86,7 +86,7 @@ export function InCallPage() {
         }))
 
         let recordingUrl: string | null = null
-        let participantRecordings: { name: string; url: string }[] = []
+        let participantRecordings: { name: string; role: string; url: string }[] = []
 
         if (roomId) {
             try {
@@ -94,7 +94,7 @@ export function InCallPage() {
                 recordingUrl = meeting.recording?.presignedUrl ?? null
                 participantRecordings = (meeting.participants ?? [])
                     .filter((p: any) => p.recordingPresignedUrl)
-                    .map((p: any) => ({name: p.name, url: p.recordingPresignedUrl}))
+                    .map((p: any) => ({name: p.name, role: p.role, url: p.recordingPresignedUrl}))
 
                 if (meeting.participants?.length > 0) {
                     participants = (meeting.participants ?? [])

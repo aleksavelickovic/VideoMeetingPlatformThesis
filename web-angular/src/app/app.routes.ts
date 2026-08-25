@@ -4,8 +4,10 @@ import {MeetingCreatedPageComponent} from './pages/meeting-created-page.componen
 import {PreJoinPageComponent} from './pages/pre-join-page.component'
 import {InCallPageComponent} from './pages/in-call-page.component'
 import {PostCallPageComponent} from './pages/post-call-page.component'
+import {ParticipantEgressTemplateComponent} from './pages/participant-egress-template.component'
 
 export const routes: Routes = [
+    {path: 'egress/participant', component: ParticipantEgressTemplateComponent},
     {path: '', component: CreateMeetingPageComponent},
     {path: 'meeting-created', component: MeetingCreatedPageComponent},
     {path: 'room/:roomId', component: PreJoinPageComponent},

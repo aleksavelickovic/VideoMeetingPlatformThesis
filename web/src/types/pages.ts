@@ -11,7 +11,7 @@ export interface PostCallState {
     durationSeconds?: number
     participants?: Attendee[]
     recordingUrl?: string | null
-    participantRecordings?: { name: string; url: string }[]
+    participantRecordings?: { name: string; role: string; url: string }[]
     isHost?: boolean
 }
 

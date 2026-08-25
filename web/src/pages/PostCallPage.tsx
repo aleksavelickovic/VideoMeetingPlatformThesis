@@ -173,7 +173,7 @@ export function PostCallPage() {
                                         </a>
                                     )}
 
-                                    {isHost && participantRecordings.map(({name, url}) => (
+                                    {isHost && participantRecordings.map(({name, role, url}) => (
                                         <a
                                             key={name}
                                             href={url}
@@ -183,10 +183,12 @@ export function PostCallPage() {
                                 transition-transform duration-150
                                 hover:scale-[1.02] active:scale-[0.98]
                             "
-                                            title={`Download ${name}'s Recording`}
+                                            title={role === 'host' ? 'Download Host Recording' : `Download ${name}'s Recording`}
                                         >
                                             <Download className="h-5 w-5 shrink-0"/>
-                                            <span className="min-w-0 truncate">Download {name}'s Recording</span>
+                                            <span className="min-w-0 truncate">
+                                                {role === 'host' ? 'Download Host Recording' : `Download ${name}'s Recording`}
+                                            </span>
                                         </a>
                                     ))}
 

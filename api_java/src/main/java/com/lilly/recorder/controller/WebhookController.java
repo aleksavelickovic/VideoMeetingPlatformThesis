@@ -1,7 +1,6 @@
 package com.lilly.recorder.controller;
 
 import com.lilly.recorder.constants.MeetingStatus;
-import com.lilly.recorder.constants.ParticipantRole;
 import com.lilly.recorder.entity.Meeting;
 import com.lilly.recorder.entity.Participant;
 import com.lilly.recorder.service.CallbackService;
@@ -59,8 +58,7 @@ public class WebhookController {
     }
 
     void handleEgressEnded(LivekitEgress.EgressInfo egressInfo) {
-        if (egressInfo.getRequestCase() == LivekitEgress.EgressInfo.RequestCase.PARTICIPANT) {
-            meetingService.updateParticipantRecordingInfo(egressInfo);
+        if (meetingService.updateParticipantRecordingInfo(egressInfo)) {
             return;
         }
 
@@ -92,7 +90,7 @@ public class WebhookController {
                 .filter(item -> item.getName().equals(participant.getIdentity()))
                 .findFirst()
                 .orElse(null);
-        if (dbParticipant == null || dbParticipant.getRole() != ParticipantRole.GUEST) {
+        if (dbParticipant == null) {
             return;
         }
 

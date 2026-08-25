@@ -2,7 +2,7 @@ import {AfterViewInit, Component, ElementRef, OnDestroy, ViewChild, computed, in
 import {FormsModule} from '@angular/forms'
 import {ActivatedRoute, Router} from '@angular/router'
 import {firstValueFrom} from 'rxjs'
-import {Camera, ChevronDown, LucideAngularModule, Mic, UserRound, Video} from 'lucide-angular'
+import {Camera, CameraOff, ChevronDown, LucideAngularModule, Mic, MicOff, UserRound, Video} from 'lucide-angular'
 import {readJoinIdentity} from '../core/jwt.util'
 import {MediaDevicesService} from '../core/media-devices.service'
 import {MeetingApiService} from '../core/meeting-api.service'
@@ -15,7 +15,7 @@ import {SessionsHeaderComponent} from '../shared/sessions-header.component'
         <div class="min-h-screen bg-page">
             <app-sessions-header [title]="meetingTitle()"/>
             <main class="mx-auto flex min-h-[calc(100vh-51px)] w-full max-w-[920px] items-center px-5 py-8">
-                <div class="grid w-full items-center gap-7 md:grid-cols-[1.25fr_.8fr]">
+                <div class="grid w-full items-end gap-7 md:grid-cols-[1.25fr_.8fr]">
                     <section>
                         <div
                                 class="relative aspect-video overflow-hidden rounded-xl border border-[#24344c] bg-[#06101d] shadow-panel">
@@ -26,19 +26,19 @@ import {SessionsHeaderComponent} from '../shared/sessions-header.component'
                                     class="absolute bottom-20 text-xs text-[#7294c3]">Camera preview</span></div>
                             <span
                                     class="absolute bottom-3 left-3 rounded bg-black/70 px-2 py-1 text-xs font-semibold text-white">{{ name() || 'You' }}</span>
+                            <span class="absolute bottom-3 right-3 flex items-center gap-1 rounded bg-black/70 px-2 py-1 text-xs text-white">
+                                <lucide-icon [img]="microphoneEnabled() ? Mic : MicOff" class="size-3.5"/>
+                                {{ microphoneEnabled() ? 'Microphone on' : 'Microphone off' }}
+                            </span>
                         </div>
-                        <p class="mt-3 flex items-center gap-2 text-xs text-[#5c7ba5]">
-                            <lucide-icon [img]="Mic" class="size-4"/>
-                            {{ devices.loading() ? 'Detecting devices…' : 'Microphone active' }}
-                        </p>
                     </section>
                     <section><h1 class="text-xl font-semibold text-white">Ready to join?</h1>
                         <p class="mt-1 text-sm text-muted">{{ meetingTitle() || 'Meeting' }}</p>
                         <div class="mt-6 space-y-4"><label><span class="field-label">Your name</span>
                             <div class="relative"><input [ngModel]="name()" (ngModelChange)="name.set($event)"
                                                          class="field-control pl-10">
-                                <lucide-icon [img]="UserRound"
-                                             class="pointer-events-none absolute left-3 top-3 size-4 text-muted"/>
+<!--                                <lucide-icon [img]="UserRound"-->
+<!--                                             class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted"/>-->
                             </div>
                         </label><label><span class="field-label">Camera</span>
                             <div class="relative"><select [ngModel]="cameraId()"
@@ -70,6 +70,20 @@ import {SessionsHeaderComponent} from '../shared/sessions-header.component'
                             @if (error()) {
                                 <p class="text-xs text-danger">{{ error() }}</p>
                             }
+                            <div class="grid grid-cols-2 gap-3">
+                                <button type="button" class="btn-secondary flex items-center justify-center gap-2"
+                                        [class.border-brand]="cameraEnabled()" [class.text-white]="cameraEnabled()"
+                                        (click)="toggleCamera()">
+                                    <lucide-icon [img]="cameraEnabled() ? Camera : CameraOff" class="size-4"/>
+                                    {{ cameraEnabled() ? 'Camera on' : 'Camera off' }}
+                                </button>
+                                <button type="button" class="btn-secondary flex items-center justify-center gap-2"
+                                        [class.border-brand]="microphoneEnabled()" [class.text-white]="microphoneEnabled()"
+                                        (click)="toggleMicrophone()">
+                                    <lucide-icon [img]="microphoneEnabled() ? Mic : MicOff" class="size-4"/>
+                                    {{ microphoneEnabled() ? 'Mic on' : 'Mic off' }}
+                                </button>
+                            </div>
                             <button class="btn-primary w-full" [disabled]="!token || !name().trim() || joining()"
                                     (click)="join()">{{ joining() ? 'Joining…' : 'Join Meeting' }}
                             </button>
@@ -95,10 +109,14 @@ export class PreJoinPageComponent implements AfterViewInit, OnDestroy {
     readonly meetingTitle = signal('');
     readonly error = signal('');
     readonly joining = signal(false)
+    readonly cameraEnabled = signal(true)
+    readonly microphoneEnabled = signal(true)
     stream: MediaStream | null = null
     protected readonly Camera = Camera;
+    protected readonly CameraOff = CameraOff;
     protected readonly ChevronDown = ChevronDown;
     protected readonly Mic = Mic;
+    protected readonly MicOff = MicOff;
     protected readonly UserRound = UserRound;
     protected readonly Video = Video
 
@@ -112,7 +130,11 @@ export class PreJoinPageComponent implements AfterViewInit, OnDestroy {
 
     async updatePreview(): Promise<void> {
         this.stream?.getTracks().forEach(track => track.stop());
-        if (!this.cameraId()) return;
+        this.stream = null
+        if (!this.cameraEnabled() || !this.cameraId()) {
+            if (this.preview) this.preview.nativeElement.srcObject = null
+            return
+        }
         try {
             this.stream = await navigator.mediaDevices.getUserMedia({
                 video: {deviceId: {exact: this.cameraId()}},
@@ -122,6 +144,15 @@ export class PreJoinPageComponent implements AfterViewInit, OnDestroy {
         } catch {
             this.stream = null
         }
+    }
+
+    async toggleCamera(): Promise<void> {
+        this.cameraEnabled.update(value => !value)
+        await this.updatePreview()
+    }
+
+    toggleMicrophone(): void {
+        this.microphoneEnabled.update(value => !value)
     }
 
     initials(): string {
@@ -139,8 +170,10 @@ export class PreJoinPageComponent implements AfterViewInit, OnDestroy {
                 queryParams: {
                     token: this.token,
                     name: this.name(),
-                    camera: this.cameraId(),
-                    microphone: this.microphoneId()
+                    camera: this.cameraEnabled() ? this.cameraId() : '',
+                    microphone: this.microphoneEnabled() ? this.microphoneId() : '',
+                    cameraEnabled: String(this.cameraEnabled()),
+                    microphoneEnabled: String(this.microphoneEnabled())
                 }
             })
         } catch (error) {

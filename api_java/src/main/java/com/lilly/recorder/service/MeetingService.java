@@ -204,13 +204,13 @@ public class MeetingService {
     }
 
     @Transactional
-    public void updateParticipantRecordingInfo(LivekitEgress.EgressInfo egressInfo) {
+    public boolean updateParticipantRecordingInfo(LivekitEgress.EgressInfo egressInfo) {
         if (egressInfo.getFileResultsCount() == 0) {
-            return;
+            return false;
         }
         Participant participant = participantRepository.findByLiveKitEgressIdAndDeletedFalse(egressInfo.getEgressId()).orElse(null);
         if (participant == null) {
-            return;
+            return false;
         }
         LivekitEgress.FileInfo fileInfo = egressInfo.getFileResults(0);
         if (fileInfo.getSize() > 0) {
@@ -220,6 +220,7 @@ public class MeetingService {
             participant.setRecordingDurationSeconds((int) (egressInfo.getFile().getDuration() / 1_000_000_000L));
         }
         participantRepository.save(participant);
+        return true;
     }
 
     @Transactional

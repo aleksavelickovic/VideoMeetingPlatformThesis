@@ -122,18 +122,18 @@ export function DateTimePicker({value, onChange, error}: DateTimePickerProps) {
         <div ref={triggerRef} className="relative w-full">
             <div
                 onClick={() => setOpen(o => !o)}
-                className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer bg-surface border transition-colors h-[72px] ${error ? 'border-text-error' : open ? 'border-brand' : 'border-border'}`}
+                className={`flex items-center justify-between gap-2.5 px-3 py-2.5 rounded-xl cursor-pointer bg-surface border transition-colors h-[72px] ${error ? 'border-text-error' : open ? 'border-brand' : 'border-border'}`}
             >
-                <div className="w-8 h-8 rounded-lg bg-brand-muted flex items-center justify-center flex-shrink-0">
-                    <Calendar className="w-4 h-4 text-brand"/>
-                </div>
-                <div className="flex-1 min-w-0 flex flex-col justify-center">
+                <div className="min-w-0 flex-1 flex flex-col justify-center">
                     <div className="text-xs text-text-secondary leading-tight">Scheduled at</div>
                     <div
                         className={`text-sm truncate font-medium ${value ? 'text-text-primary' : 'text-text-secondary'}`}>
                         {value ? formatDisplay(value) : 'Pick a date and time'}
                     </div>
                     <p className={`text-text-error text-[10px] leading-none h-3 mt-0.5 ${error ? 'visible' : 'invisible'}`}>{error ?? ''}</p>
+                </div>
+                <div className="w-8 h-8 rounded-lg bg-brand-muted flex items-center justify-center flex-shrink-0">
+                    <Calendar className="w-4 h-4 text-brand"/>
                 </div>
             </div>
             {open && createPortal(dropdown, document.body)}
