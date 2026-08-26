@@ -1,0 +1,7 @@
+Gasenje sastanka - 15 minuta od kraja (ne pocetka)
+Mejlovi (summarty - free text i linkovi)
+Invintation text pored summary-a
+Connection deo izbaciti
+Editovanje sastanka samo za ulogovanog korisnika (ako nije poceo ili se niko nije pridruzio 15min ranije)
+Additional metadata se dodaje u sastanku (izbaciti iz kreiranja sastanka), omoguciti hostu da tokom sastanka ima popup za beleske. po zavrsetku se te beleske salju sa summary svima na mejl
+Promeni app i IDE u light theme za screenshots
