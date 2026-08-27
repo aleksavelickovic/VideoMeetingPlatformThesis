@@ -47,9 +47,6 @@ public class Meeting extends BaseEntity {
     private String recordingFormat = "mp4";
 
     @Column(nullable = false)
-    private String callbackUrl;
-
-    @Column(nullable = false)
     private String callbackSecret = UUID.randomUUID().toString().replace("-", "");
 
     @Column(columnDefinition = "jsonb")
@@ -62,9 +59,6 @@ public class Meeting extends BaseEntity {
 
     @OneToMany(mappedBy = "meeting", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Participant> participants = new ArrayList<>();
-
-    @OneToMany(mappedBy = "meeting", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<CallbackAttempt> callbackAttempts = new ArrayList<>();
 
     public UUID getRoomId() {
         return roomId;
@@ -170,14 +164,6 @@ public class Meeting extends BaseEntity {
         this.recordingFormat = recordingFormat;
     }
 
-    public String getCallbackUrl() {
-        return callbackUrl;
-    }
-
-    public void setCallbackUrl(String callbackUrl) {
-        this.callbackUrl = callbackUrl;
-    }
-
     public String getCallbackSecret() {
         return callbackSecret;
     }
@@ -224,9 +210,5 @@ public class Meeting extends BaseEntity {
 
     public void setParticipants(List<Participant> participants) {
         this.participants = participants == null ? new ArrayList<>() : new ArrayList<>(participants);
-    }
-
-    public List<CallbackAttempt> getCallbackAttempts() {
-        return callbackAttempts;
     }
 }

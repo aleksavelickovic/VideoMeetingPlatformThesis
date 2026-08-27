@@ -34,7 +34,6 @@ public class MeetingMapper {
         meeting.setRecordingFormat(dto.getRecording().getFormat());
         meeting.setRecordingWidth(dto.getRecording().getWidth());
         meeting.setRecordingHeight(dto.getRecording().getHeight());
-        meeting.setCallbackUrl(dto.getCallbackUrl());
         meeting.setStatus(MeetingStatus.IN_PROGRESS);
         meeting.setStartedAt(java.time.Instant.now());
         if (dto.getMetadata() != null) {
@@ -66,7 +65,6 @@ public class MeetingMapper {
         dto.setScheduledAt(meeting.getScheduledAt());
         dto.setDurationLimitMinutes(meeting.getDurationLimitMinutes());
         dto.setRecordingEnabled(meeting.isRecordingEnabled());
-        dto.setCallbackUrl(meeting.getCallbackUrl());
         dto.setStartedAt(meeting.getStartedAt());
         dto.setEndedAt(meeting.getEndedAt());
         dto.setParticipants(meeting.getParticipants().stream().map(participant -> toParticipantDto(participant, participantPresignedUrls.get(participant.getName()))).toList());
@@ -108,7 +106,6 @@ public class MeetingMapper {
         response.setTitle(meeting.getTitle());
         response.setStatus(meeting.getStatus().getValue());
         response.setRecordingEnabled(meeting.isRecordingEnabled());
-        response.setCallbackUrl(meeting.getCallbackUrl());
         response.setStartedAt(meeting.getStartedAt());
         response.setEndedAt(meeting.getEndedAt());
         response.setParticipants(meeting.getParticipants().stream().map(participant -> {

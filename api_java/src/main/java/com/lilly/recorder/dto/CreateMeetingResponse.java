@@ -11,7 +11,6 @@ public class CreateMeetingResponse {
     private String title;
     private String status;
     private boolean recordingEnabled;
-    private String callbackUrl;
     private Instant startedAt;
     private Instant endedAt;
     private List<ParticipantResponse> participants = new ArrayList<>();
@@ -55,14 +54,6 @@ public class CreateMeetingResponse {
 
     public void setRecordingEnabled(boolean recordingEnabled) {
         this.recordingEnabled = recordingEnabled;
-    }
-
-    public String getCallbackUrl() {
-        return callbackUrl;
-    }
-
-    public void setCallbackUrl(String callbackUrl) {
-        this.callbackUrl = callbackUrl;
     }
 
     public Instant getStartedAt() {

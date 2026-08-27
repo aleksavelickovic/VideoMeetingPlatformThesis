@@ -25,9 +25,7 @@ export interface CreateMeetingDto {
     durationLimitMinutes: number
     participants: CreateParticipantDto[]
     recording: RecordingConfig
-    callbackUrl: string
-    joinBaseUrl: string
-    metadata: unknown
+    metadata: string | null
 }
 
 export interface ParticipantDto {
@@ -60,7 +58,6 @@ export interface MeetingDto {
     scheduledAt: string
     durationLimitMinutes: number
     recordingEnabled: boolean
-    callbackUrl: string
     startedAt: string | null
     endedAt: string | null
     participants: ParticipantDto[]
@@ -73,7 +70,6 @@ export interface CreateMeetingResponse {
     title: string
     status: MeetingStatus
     recordingEnabled: boolean
-    callbackUrl: string
     startedAt: string | null
     endedAt: string | null
     participants: Array<Pick<ParticipantDto, 'id' | 'name' | 'role' | 'joinLink'>>

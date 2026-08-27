@@ -34,25 +34,7 @@ public class CreateMeetingDto {
     @Valid
     private RecordingConfigDto recording = new RecordingConfigDto();
 
-    @NotBlank
-    private String callbackUrl;
-
-    @NotBlank
-    private String joinBaseUrl;
-
-    private Object metadata;
-
-    @AssertTrue(message = "CallbackUrl must be a valid URL.")
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    public boolean isCallbackUrlValid() {
-        return isValidAbsoluteUrl(callbackUrl);
-    }
-
-    @AssertTrue(message = "JoinBaseUrl must be a valid URL.")
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    public boolean isJoinBaseUrlValid() {
-        return isValidAbsoluteUrl(joinBaseUrl);
-    }
+    private String metadata;
 
     @AssertTrue(message = "ScheduledAt must be in the future.")
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
@@ -109,27 +91,11 @@ public class CreateMeetingDto {
         this.recording = recording;
     }
 
-    public String getCallbackUrl() {
-        return callbackUrl;
-    }
-
-    public void setCallbackUrl(String callbackUrl) {
-        this.callbackUrl = callbackUrl;
-    }
-
-    public String getJoinBaseUrl() {
-        return joinBaseUrl;
-    }
-
-    public void setJoinBaseUrl(String joinBaseUrl) {
-        this.joinBaseUrl = joinBaseUrl;
-    }
-
-    public Object getMetadata() {
+    public String getMetadata() {
         return metadata;
     }
 
-    public void setMetadata(Object metadata) {
+    public void setMetadata(String metadata) {
         this.metadata = metadata;
     }
 
