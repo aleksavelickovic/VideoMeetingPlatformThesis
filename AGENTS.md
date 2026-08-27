@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-This repository contains a Spring Boot backend in `api_java/` and a Vite React frontend in `web/`. Backend code lives under `api_java/src/main/java/com/lilly/recorder/`, organized by `controller`, `service`, `repository`, `entity`, `dto`, `mapper`, `security`, and `config`; resources are in `api_java/src/main/resources/`. Frontend source is in `web/src/`, split into `pages`, `components`, `hooks`, `api`, `types`, `styles`, `utils`, and `constants`. Root infrastructure includes `docker-compose.yml`, `livekit.yaml`, `.env.example`, and UML/specification assets.
+This repository contains a Spring Boot backend in `api_java/` and an Angular frontend in `web-angular/`. Backend code lives under `api_java/src/main/java/com/lilly/recorder/`, organized by `controller`, `service`, `repository`, `entity`, `dto`, `mapper`, `security`, and `config`; resources are in `api_java/src/main/resources/`. Frontend source is in `web-angular/src/`, split into `pages`, `core`, `models` and `shared`. Root infrastructure includes `docker-compose.yml`, `livekit.yaml`, `.env.example`, and UML/specification assets.
 
 ## Build, Test, and Development Commands
 
@@ -30,4 +30,4 @@ Recent commits use bracketed prefixes such as `[EDIT]` and `[DELETE]`. Continue 
 
 ## Security & Configuration Tips
 
-Use `.env.example` and `web/.env.example` as templates only. Do not commit real API keys, LiveKit secrets, JWT secrets, database passwords, or S3 credentials. Treat `docker-compose.yml` as the source of truth for local service names and ports.
+Use `.env.example` and `web-angular/.env.example` as templates only. Do not commit real API keys, LiveKit secrets, JWT secrets, database passwords, or S3 credentials. Treat `docker-compose.yml` as the source of truth for local service names and ports.
