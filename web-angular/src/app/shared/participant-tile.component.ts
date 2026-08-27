@@ -6,19 +6,19 @@ import {LucideAngularModule, MicOff, Monitor} from 'lucide-angular'
     selector: 'app-participant-tile',
     imports: [LucideAngularModule],
     template: `
-        <article class="relative h-full min-h-0 overflow-hidden rounded-xl border bg-[#071018]"
+        <article class="relative h-full min-h-0 overflow-hidden rounded-xl border bg-slate-100"
                  [class.border-success]="participant().isSpeaking"
                  [class.shadow-[0_0_18px_rgba(34,197,94,.32)]]="participant().isSpeaking"
-                 [class.border-[#1b2a3e]]="!participant().isSpeaking">
+                 [class.border-slate-300]="!participant().isSpeaking">
             <video #video autoplay playsinline class="absolute inset-0 size-full object-cover"
                    [class.object-contain]="screenSharing"></video>
             <audio #audio autoplay></audio>
             @if (!hasVideo) {
                 <div class="absolute inset-0 grid place-items-center bg-gradient-to-br"
-                     [class.from-[#0c274b]]="isLocal()" [class.from-[#0c2b23]]="!isLocal()" [class.to-[#05080d]]="true">
+                     [class.from-blue-100]="isLocal()" [class.from-emerald-100]="!isLocal()" [class.to-slate-100]="true">
                     <span class="grid size-14 place-items-center rounded-full border text-2xl font-semibold"
-                          [class.border-brand]="isLocal()" [class.text-[#8ab8ff]]="isLocal()"
-                          [class.border-success]="!isLocal()" [class.text-[#82e9ae]]="!isLocal()">{{ initials }}</span>
+                          [class.border-brand]="isLocal()" [class.text-blue-700]="isLocal()"
+                          [class.border-success]="!isLocal()" [class.text-emerald-700]="!isLocal()">{{ initials }}</span>
                 </div>
             }
             <div class="absolute bottom-0 left-0 right-0 flex items-center justify-between bg-gradient-to-t from-black/80 px-3 pb-3 pt-8 text-xs text-white">

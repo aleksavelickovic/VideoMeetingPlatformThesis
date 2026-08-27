@@ -32,12 +32,12 @@ import {ParticipantTileComponent} from '../shared/participant-tile.component'
                 </main>
             } @else {
                 <div class="flex min-h-0 flex-1 flex-col">
-                    <div class="flex items-center justify-between border-b border-[#1c283b] bg-[#101723] px-5 py-3">
+                    <div class="flex items-center justify-between border-b border-line bg-white px-5 py-3">
                         <div class="text-xs text-muted">{{ title() || roomId }}</div>
                         <div class="flex items-center gap-4"><span
                                 class="rounded border border-danger/30 bg-danger/10 px-2 py-1 text-[11px] font-bold text-danger"
                                 [class.invisible]="!livekit.recording()">● REC</span><span
-                                class="font-mono text-sm text-[#a6bfe5]"
+                                class="font-mono text-sm text-slate-600"
                                 [class.text-danger]="limitSeconds() && elapsed() >= limitSeconds()">{{ duration() }} @if (limitSeconds()) {
                             / {{ limitDuration() }}
                         }</span><span class="text-xs text-muted">{{ participantCount() }} participants</span></div>
@@ -56,12 +56,12 @@ import {ParticipantTileComponent} from '../shared/participant-tile.component'
                             <div class="absolute inset-0 z-10 grid place-items-center bg-page/85 text-center backdrop-blur">
                                 <div><span
                                         class="mx-auto block size-10 animate-spin rounded-full border-4 border-line border-t-brand"></span>
-                                    <p class="mt-4 font-semibold text-white">Reconnecting…</p>
+                                    <p class="mt-4 font-semibold text-slate-900">Reconnecting…</p>
                                     <p class="mt-1 text-sm text-muted">Please wait while we restore your connection.</p>
                                 </div>
                             </div>
                         }</main>
-                    <footer class="flex shrink-0 items-center justify-center border-t border-[#1c283b] bg-[#0e141e] p-3">
+                    <footer class="flex shrink-0 items-center justify-center border-t border-line bg-white p-3">
                         <div class="flex items-center gap-3">
                             <button class="toolbar" [class.toolbar-danger]="muted()" (click)="toggleMute()">
                                 <lucide-icon [img]="muted() ? MicOff : Mic" class="size-5"/>
@@ -73,7 +73,7 @@ import {ParticipantTileComponent} from '../shared/participant-tile.component'
                                 <lucide-icon [img]="MonitorUp" class="size-5"/>
                             </button>
                             <button
-                                    class="grid size-12 place-items-center rounded-xl bg-danger text-white transition hover:bg-[#e13e4a]"
+                                    class="grid size-12 place-items-center rounded-xl bg-danger text-white transition hover:bg-red-700"
                                     (click)="endCall()">
                                 <lucide-icon [img]="PhoneOff" class="size-5"/>
                             </button>
@@ -84,11 +84,11 @@ import {ParticipantTileComponent} from '../shared/participant-tile.component'
         </div>
     `,
     styles: `.toolbar {
-        @apply grid size-12 place-items-center rounded-xl border border-line bg-field text-[#aac0e0] transition hover:border-brand hover:text-white;
+        @apply grid size-12 place-items-center rounded-xl border border-line bg-white text-slate-600 shadow-md shadow-slate-200/70 transition hover:-translate-y-px hover:border-brand hover:text-brand hover:shadow-lg;
     }
 
     .toolbar-danger {
-        @apply border-danger/50 bg-danger/15 text-danger;
+        @apply border-danger/50 bg-danger/15 text-danger shadow-red-100;
     }`
 })
 export class InCallPageComponent implements OnInit, OnDestroy {

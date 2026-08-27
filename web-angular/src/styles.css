@@ -2,14 +2,99 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+    --color-page: 245 247 251;
+    --color-panel: 255 255 255;
+    --color-field: 244 248 255;
+    --color-line: 203 217 235;
+    --color-muted: 100 116 139;
+    --color-brand: 37 99 235;
+    --color-success: 22 163 74;
+    --color-danger: 220 53 69;
+    --color-amber: 217 119 6;
+    --color-text: 23 32 51;
+    --color-subtle: 239 246 255;
+}
+
+.theme-dark {
+    --color-page: 15 23 42;
+    --color-panel: 23 35 56;
+    --color-field: 17 28 47;
+    --color-line: 48 65 93;
+    --color-muted: 154 172 202;
+    --color-brand: 110 160 255;
+    --color-success: 74 222 128;
+    --color-danger: 251 113 133;
+    --color-amber: 251 191 36;
+    --color-text: 231 238 251;
+    --color-subtle: 30 49 82;
+    color-scheme: dark;
+}
+
 html, body {
     min-height: 100%;
-    background: #0d1119;
+    background: rgb(var(--color-page));
 }
 
 body {
+    background-image: radial-gradient(circle at 8% 0%, rgba(219, 234, 254, .72), transparent 27rem),
+    radial-gradient(circle at 96% 24%, rgba(224, 231, 255, .5), transparent 24rem);
+    background-attachment: fixed;
+}
+
+.theme-dark body {
+    background-image: radial-gradient(circle at 8% 0%, rgba(30, 64, 120, .42), transparent 27rem),
+    radial-gradient(circle at 96% 24%, rgba(49, 46, 129, .28), transparent 24rem);
+}
+
+.theme-dark .bg-white { background-color: rgb(var(--color-panel)); }
+.theme-dark .bg-white\/70, .theme-dark .bg-white\/80 { background-color: rgba(23, 35, 56, .9); }
+.theme-dark .bg-blue-50, .theme-dark .bg-blue-50\/70 { background-color: rgb(var(--color-subtle)); }
+.theme-dark .bg-blue-100 { background-color: #27436f; }
+.theme-dark .bg-slate-100, .theme-dark .bg-slate-200 { background-color: #1b2b44; }
+.theme-dark .text-slate-900 { color: #f1f5fb; }
+.theme-dark .text-slate-700 { color: #d4deed; }
+.theme-dark .text-slate-600 { color: #b6c4d8; }
+.theme-dark .text-slate-500 { color: #9aacca; }
+.theme-dark .text-slate-400 { color: #7e91ad; }
+.theme-dark .border-blue-100 { border-color: #2b4770; }
+.theme-dark .border-blue-200 { border-color: #3c6095; }
+.theme-dark .from-blue-100 { --tw-gradient-from: #203b68 var(--tw-gradient-from-position); }
+.theme-dark .from-emerald-100 { --tw-gradient-from: #164b3b var(--tw-gradient-from-position); }
+.theme-dark .to-slate-100 { --tw-gradient-to: #172338 var(--tw-gradient-to-position); }
+.theme-dark .field-control:focus,
+.theme-dark .focus\:bg-white:focus,
+.theme-dark .focus-within\:bg-white:focus-within { background-color: rgb(var(--color-field)) !important; color: #f1f5fb; }
+.theme-dark .btn-secondary,
+.theme-dark .toolbar { background-color: rgb(var(--color-panel)) !important; color: #d4deed; }
+.theme-dark .btn-secondary:hover,
+.theme-dark .toolbar:hover,
+.theme-dark .theme-toggle:hover,
+.theme-dark .hover\:bg-blue-50:hover { background-color: rgb(var(--color-subtle)) !important; color: rgb(var(--color-brand)); }
+.theme-dark .toolbar-danger,
+.theme-dark .toolbar-danger:hover { background-color: rgba(251, 113, 133, .16) !important; color: rgb(var(--color-danger)); }
+
+.theme-toggle {
+    @apply grid size-8 place-items-center rounded-lg border border-line bg-field text-muted shadow-sm transition hover:-translate-y-px hover:border-brand hover:bg-blue-50 hover:text-brand hover:shadow-md;
+}
+
+::view-transition-old(root), ::view-transition-new(root) { animation: none; }
+::view-transition-new(root) {
+    animation: theme-reveal .6s ease-out;
+    z-index: 1;
+}
+
+@keyframes theme-reveal {
+    from { clip-path: circle(0 at var(--theme-x) var(--theme-y)); }
+    to { clip-path: circle(150% at var(--theme-x) var(--theme-y)); }
+}
+
+.theme-fallback-transition { animation: theme-fade .5s ease-out; }
+@keyframes theme-fade { 0% { opacity: .72; } 100% { opacity: 1; } }
+
+body {
     margin: 0;
-    color: #eef4ff;
+    color: rgb(var(--color-text));
     font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
@@ -35,12 +120,17 @@ button:disabled {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #26354e;
+    background: #c6d2e2;
     border-radius: 999px;
 }
 
 .session-card {
-    @apply rounded-xl border border-line bg-panel shadow-panel;
+    @apply rounded-xl border border-line bg-panel shadow-panel transition-shadow;
+    background-image: linear-gradient(135deg, rgb(var(--color-panel)) 0%, rgb(var(--color-subtle)) 180%);
+}
+
+.session-card:hover {
+    box-shadow: 0 16px 38px rgba(30, 64, 120, .13);
 }
 
 .section-label {
@@ -48,11 +138,12 @@ button:disabled {
 }
 
 .field-label {
-    @apply mb-1.5 block text-xs font-medium text-[#8ba5cd];
+    @apply mb-1.5 block text-xs font-medium text-slate-600;
 }
 
 .field-control {
-    @apply w-full rounded-lg border border-line bg-field px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-[#60718c] focus:border-brand focus:ring-2 focus:ring-brand/20;
+    @apply w-full rounded-lg border border-line bg-field px-3 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/20;
+    box-shadow: inset 0 1px 2px rgba(37, 99, 235, .05), 0 1px 2px rgba(30, 64, 120, .03);
 }
 
 .meeting-editor ul {
@@ -61,7 +152,7 @@ button:disabled {
 }
 
 .meeting-editor:empty::before {
-    color: #60718c;
+    color: #94a3b8;
     content: attr(data-placeholder);
     pointer-events: none;
 }
@@ -76,9 +167,9 @@ button:disabled {
 }
 
 .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-brand px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#3475e5] disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-brand px-4 py-3 text-sm font-semibold text-white shadow-md shadow-blue-200/70 transition hover:-translate-y-px hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-200/80 disabled:opacity-50;
 }
 
 .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-line bg-transparent px-4 py-3 text-sm font-medium text-[#9cb3d6] transition hover:border-brand hover:text-white;
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-line bg-white px-4 py-3 text-sm font-medium text-slate-700 shadow-sm transition hover:-translate-y-px hover:border-brand hover:bg-blue-50 hover:text-brand hover:shadow-md hover:shadow-blue-100;
 }

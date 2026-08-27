@@ -35,15 +35,15 @@ const presets = [{label: 'HD (1280 × 720)', width: 1280, height: 720}, {
         <div class="min-h-screen bg-page">
             <app-sessions-header/>
             <main class="mx-auto w-full max-w-[632px] px-5 py-9 pb-14">
-                <h1 class="text-2xl font-semibold tracking-tight text-white">New Meeting</h1>
+                <h1 class="text-2xl font-semibold tracking-tight text-slate-900">New Meeting</h1>
                 <p class="mt-2 text-sm text-muted">Configure your meeting settings and participants.</p>
 
                 <form [formGroup]="form" (ngSubmit)="submit()" class="mt-8 space-y-7">
-                    <section class="session-card p-5"><h2 class="section-label border-b border-[#1c293d] pb-3">Basic
+                    <section class="session-card p-5"><h2 class="section-label border-b border-line pb-3">Basic
                         info</h2><label class="mt-4 block"><span class="field-label">Title</span><input
                             formControlName="title" class="field-control" placeholder="Q3 Product Review"></label>
                     </section>
-                    <section class="session-card p-5"><h2 class="section-label border-b border-[#1c293d] pb-3">
+                    <section class="session-card p-5"><h2 class="section-label border-b border-line pb-3">
                         Schedule</h2>
                         <div class="mt-4 grid gap-4 sm:grid-cols-[1fr_120px]"><label><span class="field-label">Scheduled at</span>
                             <app-date-time-picker formControlName="scheduledAt"/>
@@ -54,46 +54,43 @@ const presets = [{label: 'HD (1280 × 720)', width: 1280, height: 720}, {
                         </div>
                     </section>
                     <section class="session-card p-5">
-                        <h2 class="section-label border-b border-[#1c293d] pb-3">Additional Information</h2>
+                        <h2 class="section-label border-b border-line pb-3">Additional Information</h2>
                         <div class="mt-4">
                             <span class="field-label">Description (optional)</span>
-                            <div class="overflow-hidden rounded-lg border border-line bg-field focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/20">
-                                <div class="flex flex-wrap items-center gap-1 border-b border-line px-2 py-1.5"
+                            <div class="overflow-hidden rounded-lg border border-line bg-field shadow-sm focus-within:border-brand focus-within:bg-white focus-within:ring-2 focus-within:ring-brand/20">
+                                <div class="flex flex-wrap items-center gap-1 border-b border-line bg-blue-50/70 px-2 py-1.5"
                                      role="toolbar" aria-label="Description formatting">
                                     <button type="button" title="Bold (Ctrl/Cmd+B)" aria-label="Bold"
                                             (mousedown)="formatMetadata($event, 'bold')"
-                                            [class.bg-brand
-                                    /20]="metadataFormatting().bold"
-                                    class="grid size-8 place-items-center rounded text-[#c9d8f2] hover:bg-[#263653]">
+                                            [class.bg-blue-100]="metadataFormatting().bold"
+                                    class="grid size-8 place-items-center rounded text-slate-600 hover:bg-blue-50">
                                     <lucide-icon
                                             [img]="Bold" class="size-4"/>
                                     </button>
                                     <button type="button" title="Italic (Ctrl/Cmd+I)" aria-label="Italic"
                                             (mousedown)="formatMetadata($event, 'italic')"
-                                            [class.bg-brand
-                                    /20]="metadataFormatting().italic"
-                                    class="grid size-8 place-items-center rounded text-[#c9d8f2] hover:bg-[#263653]">
+                                            [class.bg-blue-100]="metadataFormatting().italic"
+                                    class="grid size-8 place-items-center rounded text-slate-600 hover:bg-blue-50">
                                     <lucide-icon
                                             [img]="Italic" class="size-4"/>
                                     </button>
                                     <button type="button" title="Underline (Ctrl/Cmd+U)" aria-label="Underline"
                                             (mousedown)="formatMetadata($event, 'underline')"
-                                            [class.bg-brand
-                                    /20]="metadataFormatting().underline"
-                                    class="grid size-8 place-items-center rounded text-[#c9d8f2] hover:bg-[#263653]">
+                                            [class.bg-blue-100]="metadataFormatting().underline"
+                                    class="grid size-8 place-items-center rounded text-slate-600 hover:bg-blue-50">
                                     <lucide-icon
                                             [img]="Underline" class="size-4"/>
                                     </button>
                                     <span class="mx-1 h-5 w-px bg-line"></span>
                                     <button type="button" title="Bulleted list" aria-label="Bulleted list"
                                             (mousedown)="formatMetadata($event, 'insertUnorderedList')"
-                                            class="grid size-8 place-items-center rounded text-[#c9d8f2] hover:bg-[#263653]">
+                                            class="grid size-8 place-items-center rounded text-slate-600 hover:bg-blue-50">
                                         <lucide-icon
                                                 [img]="List" class="size-4"/>
                                     </button>
                                     <button type="button" title="Numbered list" aria-label="Numbered list"
                                             (mousedown)="formatMetadata($event, 'insertOrderedList')"
-                                            class="grid size-8 place-items-center rounded text-[#c9d8f2] hover:bg-[#263653]">
+                                            class="grid size-8 place-items-center rounded text-slate-600 hover:bg-blue-50">
                                         <lucide-icon
                                                 [img]="ListOrdered" class="size-4"/>
                                     </button>
@@ -101,7 +98,7 @@ const presets = [{label: 'HD (1280 × 720)', width: 1280, height: 720}, {
                                 <div #metadataEditor contenteditable="true" role="textbox" aria-multiline="true"
                                      spellcheck="true"
                                      data-placeholder="Provide a short description of the meeting"
-                                     class="meeting-editor min-h-[112px] max-h-56 overflow-y-auto px-3 py-2.5 text-sm text-white outline-none"
+                                     class="meeting-editor min-h-[112px] max-h-56 overflow-y-auto px-3 py-2.5 text-sm text-slate-900 outline-none"
                                      (input)="onMetadataInput($event)"
                                      (keyup)="refreshMetadataFormatting()"
                                      (mouseup)="refreshMetadataFormatting()"
@@ -111,9 +108,9 @@ const presets = [{label: 'HD (1280 × 720)', width: 1280, height: 720}, {
                         </div>
                     </section>
                     <section class="session-card p-5">
-                        <div class="flex items-center justify-between border-b border-[#1c293d] pb-3"><h2
+                        <div class="flex items-center justify-between border-b border-line pb-3"><h2
                                 class="section-label">Participants</h2>
-                            <button type="button" class="text-xs text-[#86a5d2] hover:text-white"
+                            <button type="button" class="text-xs text-blue-700 hover:text-blue-900"
                                     (click)="addParticipant()">
                                 <lucide-icon [img]="Plus" class="mr-1 inline size-3.5"/>
                                 Add participant
@@ -123,7 +120,7 @@ const presets = [{label: 'HD (1280 × 720)', width: 1280, height: 720}, {
                              class="mt-4 space-y-2">@for (participant of participants.controls; track $index) {
                             <div [formGroupName]="$index"
                                  class="grid grid-cols-[34px_minmax(0,1fr)_72px_24px] items-center gap-2"><span
-                                    class="grid size-7 place-items-center rounded-full border border-brand/40 bg-brand/10 text-[10px] font-semibold text-[#83b2ff]">{{ initials(participant.value.name) }}</span><input
+                                    class="grid size-7 place-items-center rounded-full border border-brand/40 bg-blue-100 text-[10px] font-semibold text-blue-700">{{ initials(participant.value.name) }}</span><input
                                     formControlName="name" class="field-control py-2" placeholder="Participant name">
                                 <button type="button" (click)="makeHost($index)"
                                         class="rounded-md border px-2 py-2 text-[10px] font-bold"
@@ -140,12 +137,12 @@ const presets = [{label: 'HD (1280 × 720)', width: 1280, height: 720}, {
                             </div>
                         }</div>
                     </section>
-                    <section class="session-card p-5"><h2 class="section-label border-b border-[#1c293d] pb-3">
+                    <section class="session-card p-5"><h2 class="section-label border-b border-line pb-3">
                         Recording</h2>
-                        <div class="mt-4 flex items-center justify-between"><span class="text-sm text-[#9eb4d5]">Enable recording</span>
+                        <div class="mt-4 flex items-center justify-between"><span class="text-sm text-slate-600">Enable recording</span>
                             <button type="button" (click)="toggleRecording()"
                                     class="relative h-6 w-11 rounded-full transition"
-                                    [class.bg-brand]="recordingEnabled" [class.bg-[#263653]]="!recordingEnabled"><span
+                                    [class.bg-brand]="recordingEnabled" [class.bg-slate-300]="!recordingEnabled"><span
                                     class="absolute top-1 size-4 rounded-full bg-white transition"
                                     [class.left-1]="!recordingEnabled" [class.left-6]="recordingEnabled"></span>
                             </button>
