@@ -38,27 +38,6 @@ services:
       - lilly-net
     restart: unless-stopped
 
-#  web:
-#    build:
-#      context: ./web
-#      dockerfile: Dockerfile
-#      args:
-#        VITE_API_URL: http://localhost:5001
-#        VITE_LIVEKIT_URL: ws://localhost:7880
-#        VITE_API_KEY: test123
-#    ports:
-#      - "3002:3000"
-#    environment:
-#      - VITE_API_URL=http://localhost:5001
-#      - VITE_LIVEKIT_URL=ws://localhost:7880
-#      - VITE_API_KEY=test123
-#      - TZ=Europe/Belgrade
-#    depends_on:
-#      - api
-#    networks:
-#      - lilly-net
-#    restart: unless-stopped
-
   web-angular:
     build:
       context: ./web-angular
@@ -124,7 +103,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -141,7 +120,7 @@ services:
     environment:
       - TZ=Europe/Belgrade
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 5s
       timeout: 3s
       retries: 10
