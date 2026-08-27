@@ -12,34 +12,34 @@ import {SessionsHeaderComponent} from '../shared/sessions-header.component'
         <div class="min-h-screen bg-page">
             <app-sessions-header/>
             @if (summary(); as call) {
-                <main class="mx-auto w-full max-w-[632px] px-5 py-9"><h1 class="text-2xl font-semibold text-white">
+                <main class="mx-auto w-full max-w-[632px] px-5 py-9"><h1 class="text-2xl font-semibold text-slate-900">
                     Meeting Ended</h1>
                     <p class="mt-2 text-sm text-muted">{{ call.meeting?.title || 'Meeting summary' }}</p>
                     <div class="mt-8 grid grid-cols-3 gap-3">
-                        <div class="session-card p-4"><p class="text-xs text-muted">Duration</p>
-                            <p class="mt-2 font-mono text-lg font-bold text-white">{{ duration() }}</p></div>
-                        <div class="session-card p-4"><p class="text-xs text-muted">Participants joined</p>
-                            <p class="mt-2 font-mono text-lg font-bold text-white">{{ joinedCount() }}
+                        <div class="session-card border-t-2 border-t-blue-400 p-4"><p class="text-xs text-muted">Duration</p>
+                            <p class="mt-2 font-mono text-lg font-bold text-slate-900">{{ duration() }}</p></div>
+                        <div class="session-card border-t-2 border-t-emerald-400 p-4"><p class="text-xs text-muted">Participants joined</p>
+                            <p class="mt-2 font-mono text-lg font-bold text-slate-900">{{ joinedCount() }}
                                 / {{ participants().length }}</p></div>
-                        <div class="session-card p-4"><p class="text-xs text-muted">Recording</p>
+                        <div class="session-card border-t-2 border-t-violet-400 p-4"><p class="text-xs text-muted">Recording</p>
                             <p class="mt-2 font-mono text-lg font-bold"
                                [class.text-success]="call.meeting?.recordingEnabled"
                                [class.text-muted]="!call.meeting?.recordingEnabled">{{ call.meeting?.recording ? call.meeting?.recording?.height + 'p' : 'Off' }}</p>
                         </div>
                     </div>
-                    <section class="session-card mt-6 p-5"><h2 class="section-label border-b border-[#1c293d] pb-3">
+                    <section class="session-card mt-6 p-5"><h2 class="section-label border-b border-line pb-3">
                         Participant activity</h2>
-                        <div class="mt-3 divide-y divide-[#1c293d]">@for (participant of participants(); track participant.id) {
+                        <div class="mt-3 divide-y divide-line">@for (participant of participants(); track participant.id) {
                             <article class="flex items-center gap-3 py-3"><span
-                                    class="grid size-8 place-items-center rounded-full border border-brand/40 bg-brand/10 text-[10px] font-semibold text-[#9bc2ff]">{{ initials(participant.name) }}</span>
+                                    class="grid size-8 place-items-center rounded-full border border-brand/40 bg-blue-100 text-[10px] font-semibold text-blue-700">{{ initials(participant.name) }}</span>
                                 <div class="min-w-0 flex-1"><p
-                                        class="truncate text-sm font-semibold text-white">{{ participant.name }} @if (participant.role === 'host') {
+                                        class="truncate text-sm font-semibold text-slate-900">{{ participant.name }} @if (participant.role === 'host') {
                                     <small class="ml-1 text-[9px] text-amber">♛ HOST</small>
                                 }</p></div>@if (participant.joinedAt) {
-                                    <div class="grid grid-cols-2 gap-3 text-right font-mono text-[10px] text-muted">
+                                    <div class="grid grid-cols-2 gap-3 text-right font-mono text-[10px] text-slate-500">
                                         <span>Joined<br><b
-                                                class="font-normal text-[#a4bbdc]">{{ time(participant.joinedAt) }}</b></span><span>Left<br><b
-                                            class="font-normal text-[#a4bbdc]">{{ time(participant.leftAt) }}</b></span>
+                                                class="font-normal text-slate-700">{{ time(participant.joinedAt) }}</b></span><span>Left<br><b
+                                            class="font-normal text-slate-700">{{ time(participant.leftAt) }}</b></span>
                                     </div>
                                 } @else {
                                     <span class="rounded border border-line px-2 py-1 text-[10px] text-muted">Did not join</span>
@@ -65,7 +65,7 @@ import {SessionsHeaderComponent} from '../shared/sessions-header.component'
                 </main>
             } @else {
                 <main class="grid min-h-[calc(100vh-51px)] place-items-center p-6 text-center">
-                    <div><p class="text-lg text-white">No call summary is available.</p><a routerLink="/"
+                    <div><p class="text-lg text-slate-900">No call summary is available.</p><a routerLink="/"
                                                                                            class="btn-primary mt-5">New
                         Meeting</a></div>
                 </main>

@@ -20,7 +20,7 @@ type CalendarCell = number | null
             <button type="button" class="field-control flex items-center justify-between gap-3 text-left"
                     [class.border-brand]="open" [attr.aria-expanded]="open" aria-haspopup="dialog"
                     (click)="toggle()">
-                <span class="min-w-0 truncate" [class.text-white]="selectedDate" [class.text-[#60718c]]="!selectedDate">
+                <span class="min-w-0 truncate" [class.text-slate-900]="selectedDate" [class.text-slate-400]="!selectedDate">
                     {{ selectedDate ? displayValue() : 'mm/dd/yyyy, --:--' }}
                 </span>
                 <lucide-icon [img]="Calendar" class="size-4 shrink-0 text-muted"/>
@@ -34,7 +34,7 @@ type CalendarCell = number | null
                                 [disabled]="isPreviousMonthDisabled()" (click)="changeMonth(-1)">
                             <lucide-icon [img]="ChevronLeft" class="size-4"/>
                         </button>
-                        <span class="text-sm font-semibold text-white">{{ monthLabel() }}</span>
+                        <span class="text-sm font-semibold text-slate-900">{{ monthLabel() }}</span>
                         <button type="button" class="picker-nav" aria-label="Next month" (click)="changeMonth(1)">
                             <lucide-icon [img]="ChevronRight" class="size-4"/>
                         </button>
@@ -84,18 +84,18 @@ type CalendarCell = number | null
         </div>
     `,
     styles: [`
-        .datetime-picker-panel { background: #111a29; }
-        .picker-nav { display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: .5rem; border: 0; color: #8295b5; background: transparent; transition: background .15s, color .15s; }
-        .picker-nav:hover:not(:disabled) { background: #1c293d; color: white; }
+        .datetime-picker-panel { background: rgb(var(--color-panel)); }
+        .picker-nav { display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: .5rem; border: 0; color: rgb(var(--color-muted)); background: transparent; transition: background .15s, color .15s; }
+        .picker-nav:hover:not(:disabled) { background: rgb(var(--color-subtle)); color: rgb(var(--color-brand)); }
         .picker-nav:disabled { cursor: not-allowed; opacity: .3; }
-        .picker-day { display: grid; place-items: center; width: 2rem; height: 2rem; border: 0; border-radius: .5rem; color: #b9c9e2; background: transparent; font-size: .75rem; transition: background .15s, color .15s; }
-        .picker-day:hover:not(:disabled) { background: #1c293d; color: white; }
-        .picker-day:disabled { cursor: not-allowed; color: #40506a; }
-        .picker-day.today { border: 1px solid rgb(67 135 255 / .6); }
-        .picker-day.selected { background: #397ef6; color: white; font-weight: 600; }
-        .picker-day.selected:hover { background: #397ef6; }
-        .picker-select { width: 100%; border: 1px solid #26354e; border-radius: .5rem; background: #172235; padding: .5rem .75rem; color: white; font-size: .875rem; outline: none; }
-        .picker-select:focus { border-color: #397ef6; box-shadow: 0 0 0 2px rgb(57 126 246 / .2); }
+        .picker-day { display: grid; place-items: center; width: 2rem; height: 2rem; border: 0; border-radius: .5rem; color: rgb(var(--color-text)); background: transparent; font-size: .75rem; transition: background .15s, color .15s; }
+        .picker-day:hover:not(:disabled) { background: rgb(var(--color-subtle)); color: rgb(var(--color-brand)); }
+        .picker-day:disabled { cursor: not-allowed; color: rgb(var(--color-muted)); opacity: .55; }
+        .picker-day.today { border: 1px solid color-mix(in srgb, rgb(var(--color-brand)), transparent 40%); }
+        .picker-day.selected { background: rgb(var(--color-brand)); color: white; font-weight: 600; }
+        .picker-day.selected:hover { background: rgb(var(--color-brand)); }
+        .picker-select { width: 100%; border: 1px solid rgb(var(--color-line)); border-radius: .5rem; background: rgb(var(--color-field)); padding: .5rem .75rem; color: rgb(var(--color-text)); font-size: .875rem; outline: none; }
+        .picker-select:focus { border-color: rgb(var(--color-brand)); box-shadow: 0 0 0 2px color-mix(in srgb, rgb(var(--color-brand)), transparent 80%); }
         .picker-select:disabled { cursor: not-allowed; opacity: .4; }
     `]
 })

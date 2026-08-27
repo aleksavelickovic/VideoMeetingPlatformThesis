@@ -15,33 +15,34 @@ import {SessionsHeaderComponent} from '../shared/sessions-header.component'
                     <div class="text-center"><span
                             class="mx-auto grid size-14 place-items-center rounded-full border-2 border-success bg-success/10"><lucide-icon
                             [img]="Check" class="size-7 text-success"/></span>
-                        <h1 class="mt-4 text-2xl font-semibold text-white">Meeting Created</h1>
+                        <h1 class="mt-4 text-2xl font-semibold text-slate-900">Meeting Created</h1>
                         <p class="mt-2 text-sm text-muted">Share the join links below with your participants.</p></div>
                     <section class="session-card mt-8 p-5">
-                        <div class="flex items-center gap-3 border-b border-[#1c293d] pb-4">
+                        <div class="flex items-center gap-3 border-b border-line pb-4">
                             <lucide-icon [img]="Video" class="size-5 text-brand"/>
                             <div><p class="text-xs text-muted">Meeting title</p>
-                                <p class="mt-1 text-sm font-semibold text-white">{{ result.title }}</p></div>
+                                <p class="mt-1 text-sm font-semibold text-slate-900">{{ result.title }}</p></div>
                         </div>
-                        <div class="mt-4 flex gap-5 text-xs text-[#9db3d5]"><span class="flex items-center gap-1"><lucide-icon
+                        <div class="mt-4 flex gap-5 text-xs text-slate-500"><span class="flex items-center gap-1"><lucide-icon
                                 [img]="Users" class="size-4"/>
                             {{ result.participants.length }} participants</span>@if (result.recordingEnabled) {
                             <span class="flex items-center gap-1"><i class="size-2 rounded-full bg-danger"></i>Recording enabled</span>
                         }</div>
                     </section>
                     <section class="mt-4 space-y-2">@for (participant of result.participants; track participant.id) {
-                        <article class="session-card flex items-center gap-3 p-3"><span
-                                class="grid size-9 place-items-center rounded-full border border-brand/40 bg-brand/10 text-xs font-semibold text-[#9bc2ff]">{{ initials(participant.name) }}</span>
+                        <article class="session-card flex items-center gap-3 border-l-4 border-l-blue-400 p-3"><span
+                                class="grid size-9 place-items-center rounded-full border border-brand/40 bg-blue-100 text-xs font-semibold text-blue-700">{{ initials(participant.name) }}</span>
                             <div class="min-w-0 flex-1"><p
-                                    class="text-sm font-semibold text-white">{{ participant.name }} @if (participant.role === 'host') {
+                                    class="text-sm font-semibold text-slate-900">{{ participant.name }} @if (participant.role === 'host') {
                                 <small class="ml-1 rounded border border-amber/50 px-1 py-0.5 text-[9px] text-amber">HOST</small>
                             }</p>
                                 <p class="mt-1 truncate text-xs text-muted">{{ participant.joinLink }}</p></div>
                             <a [href]="participant.joinLink" target="_blank" rel="noreferrer"
-                               class="text-muted hover:text-white">
+                               class="rounded-lg p-2 text-slate-500 transition hover:bg-blue-50 hover:text-brand"
+                               [attr.aria-label]="'Open link for ' + participant.name">
                                 <lucide-icon [img]="ExternalLink" class="size-4"/>
                             </a>
-                            <button (click)="copy(participant.joinLink)" class="text-muted hover:text-white"
+                            <button (click)="copy(participant.joinLink)" class="rounded-lg p-2 text-slate-500 transition hover:bg-blue-50 hover:text-brand"
                                     [attr.aria-label]="'Copy link for ' + participant.name">
                                 <lucide-icon [img]="Copy" class="size-4"/>
                             </button>
@@ -53,7 +54,7 @@ import {SessionsHeaderComponent} from '../shared/sessions-header.component'
                 </main>
             } @else {
                 <main class="grid min-h-[calc(100vh-51px)] place-items-center p-6 text-center">
-                    <div><p class="text-lg text-white">No meeting result is available.</p><a routerLink="/"
+                    <div><p class="text-lg text-slate-900">No meeting result is available.</p><a routerLink="/"
                                                                                              class="btn-primary mt-5">Create
                         a meeting</a></div>
                 </main>

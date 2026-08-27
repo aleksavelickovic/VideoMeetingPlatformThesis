@@ -14,16 +14,16 @@ import {SessionsHeaderComponent} from '../shared/sessions-header.component'
     template: `
         <div class="min-h-screen bg-page">
             <app-sessions-header [title]="meetingTitle()"/>
-            <main class="mx-auto flex min-h-[calc(100vh-51px)] w-full max-w-[920px] items-center px-5 py-8">
-                <div class="grid w-full items-end gap-7 md:grid-cols-[1.25fr_.8fr]">
-                    <section>
+            <main class="mx-auto flex min-h-[calc(100vh-51px)] w-full max-w-[1360px] items-center px-5 py-8">
+                <div class="grid w-full items-stretch gap-8 md:grid-cols-[minmax(0,1fr)_374px]">
+                    <section class="h-full rounded-2xl border border-blue-100 bg-white/70 p-2 shadow-preview ring-1 ring-white/80 md:flex md:justify-center">
                         <div
-                                class="relative aspect-video overflow-hidden rounded-xl border border-[#24344c] bg-[#06101d] shadow-panel">
+                                class="relative aspect-video h-full overflow-hidden rounded-xl border border-blue-200 bg-slate-200 shadow-lg shadow-blue-200/60 md:inline-block md:w-auto">
                             <video #preview autoplay muted playsinline class="size-full object-cover"
                                    [class.opacity-0]="!stream"></video>
                             <div class="absolute inset-0 grid place-items-center" [class.hidden]="stream"><span
-                                    class="grid size-20 place-items-center rounded-full border-2 border-brand/60 bg-brand/10 text-2xl font-semibold text-[#9cc4ff]">{{ initials() }}</span><span
-                                    class="absolute bottom-20 text-xs text-[#7294c3]">Camera preview</span></div>
+                                    class="grid size-20 place-items-center rounded-full border-2 border-brand/60 bg-brand/10 text-2xl font-semibold text-blue-700">{{ initials() }}</span><span
+                                    class="absolute bottom-20 text-xs text-slate-500">Camera preview</span></div>
                             <span
                                     class="absolute bottom-3 left-3 rounded bg-black/70 px-2 py-1 text-xs font-semibold text-white">{{ name() || 'You' }}</span>
                             <span class="absolute bottom-3 right-3 flex items-center gap-1 rounded bg-black/70 px-2 py-1 text-xs text-white">
@@ -32,9 +32,9 @@ import {SessionsHeaderComponent} from '../shared/sessions-header.component'
                             </span>
                         </div>
                     </section>
-                    <section><h1 class="text-xl font-semibold text-white">Ready to join?</h1>
+                    <section class="flex h-full flex-col rounded-2xl border border-line bg-white/80 p-6 shadow-panel backdrop-blur-sm"><h1 class="text-xl font-semibold text-slate-900">Ready to join?</h1>
                         <p class="mt-1 text-sm text-muted">{{ meetingTitle() || 'Meeting' }}</p>
-                        <div class="mt-6 space-y-4"><label><span class="field-label">Your name</span>
+                        <div class="mt-6 flex flex-1 flex-col justify-between space-y-4"><label><span class="field-label">Your name</span>
                             <div class="relative"><input [ngModel]="name()" (ngModelChange)="name.set($event)"
                                                          class="field-control pl-10">
 <!--                                <lucide-icon [img]="UserRound"-->
@@ -72,13 +72,13 @@ import {SessionsHeaderComponent} from '../shared/sessions-header.component'
                             }
                             <div class="grid grid-cols-2 gap-3">
                                 <button type="button" class="btn-secondary flex items-center justify-center gap-2"
-                                        [class.border-brand]="cameraEnabled()" [class.text-white]="cameraEnabled()"
+                                        [class.border-brand]="cameraEnabled()" [class.bg-blue-50]="cameraEnabled()" [class.text-brand]="cameraEnabled()"
                                         (click)="toggleCamera()">
                                     <lucide-icon [img]="cameraEnabled() ? Camera : CameraOff" class="size-4"/>
                                     {{ cameraEnabled() ? 'Camera on' : 'Camera off' }}
                                 </button>
                                 <button type="button" class="btn-secondary flex items-center justify-center gap-2"
-                                        [class.border-brand]="microphoneEnabled()" [class.text-white]="microphoneEnabled()"
+                                        [class.border-brand]="microphoneEnabled()" [class.bg-blue-50]="microphoneEnabled()" [class.text-brand]="microphoneEnabled()"
                                         (click)="toggleMicrophone()">
                                     <lucide-icon [img]="microphoneEnabled() ? Mic : MicOff" class="size-4"/>
                                     {{ microphoneEnabled() ? 'Mic on' : 'Mic off' }}
@@ -87,7 +87,7 @@ import {SessionsHeaderComponent} from '../shared/sessions-header.component'
                             <button class="btn-primary w-full" [disabled]="!token || !name().trim() || joining()"
                                     (click)="join()">{{ joining() ? 'Joining…' : 'Join Meeting' }}
                             </button>
-                            <button class="btn-secondary w-full" (click)="back()">Back</button>
+<!--                            <button class="btn-secondary w-full" (click)="back()">Back</button>-->
                         </div>
                     </section>
                 </div>
