@@ -1,9 +1,7 @@
 package com.lilly.recorder.controller;
 
-import com.lilly.recorder.constants.MeetingStatus;
 import com.lilly.recorder.entity.Meeting;
 import com.lilly.recorder.entity.Participant;
-import com.lilly.recorder.service.CallbackService;
 import com.lilly.recorder.service.LiveKitService;
 import com.lilly.recorder.service.MeetingService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,12 +20,10 @@ import java.time.Instant;
 @RequestMapping("/webhook")
 public class WebhookController {
     private final MeetingService meetingService;
-    private final CallbackService callbackService;
     private final LiveKitService liveKitService;
 
-    public WebhookController(MeetingService meetingService, CallbackService callbackService, LiveKitService liveKitService) {
+    public WebhookController(MeetingService meetingService, LiveKitService liveKitService) {
         this.meetingService = meetingService;
-        this.callbackService = callbackService;
         this.liveKitService = liveKitService;
     }
 
@@ -69,9 +65,6 @@ public class WebhookController {
 
         meetingService.updateRecordingInfo(meeting.getId(), egressInfo);
         Meeting refreshed = meetingService.getByEgressId(egressInfo.getEgressId()).orElse(null);
-        if (refreshed != null && refreshed.getStatus() == MeetingStatus.COMPLETED) {
-            callbackService.dispatch(refreshed);
-        }
     }
 
     void handleParticipantJoined(LivekitModels.ParticipantInfo participant, String roomName) {

@@ -12,7 +12,6 @@ public class MeetingDto extends EntityDto {
     private Instant scheduledAt;
     private int durationLimitMinutes;
     private boolean recordingEnabled;
-    private String callbackUrl;
     private Instant startedAt;
     private Instant endedAt;
     private List<ParticipantDto> participants = new ArrayList<>();
@@ -64,14 +63,6 @@ public class MeetingDto extends EntityDto {
 
     public void setRecordingEnabled(boolean recordingEnabled) {
         this.recordingEnabled = recordingEnabled;
-    }
-
-    public String getCallbackUrl() {
-        return callbackUrl;
-    }
-
-    public void setCallbackUrl(String callbackUrl) {
-        this.callbackUrl = callbackUrl;
     }
 
     public Instant getStartedAt() {

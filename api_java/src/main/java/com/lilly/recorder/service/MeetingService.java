@@ -29,10 +29,11 @@ import java.util.UUID;
 
 @Service
 public class MeetingService {
+    private static final String DEFAULT_JOIN_BASE_URL = "http://localhost:3002";
+
     private final MeetingRepository meetingRepository;
     private final ParticipantRepository participantRepository;
     private final LiveKitService liveKitService;
-    private final CallbackService callbackService;
     private final S3Service s3Service;
     private final MeetingMapper meetingMapper;
     private final SystemConfigurationProperties properties;
@@ -41,7 +42,6 @@ public class MeetingService {
             MeetingRepository meetingRepository,
             ParticipantRepository participantRepository,
             LiveKitService liveKitService,
-            CallbackService callbackService,
             S3Service s3Service,
             MeetingMapper meetingMapper,
             SystemConfigurationProperties properties
@@ -49,7 +49,6 @@ public class MeetingService {
         this.meetingRepository = meetingRepository;
         this.participantRepository = participantRepository;
         this.liveKitService = liveKitService;
-        this.callbackService = callbackService;
         this.s3Service = s3Service;
         this.meetingMapper = meetingMapper;
         this.properties = properties;
@@ -59,9 +58,6 @@ public class MeetingService {
     public Meeting create(CreateMeetingDto dto) {
         if (dto.getParticipants() == null || dto.getParticipants().size() < 2) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "At least 2 participants are required");
-        }
-        if (dto.getCallbackUrl() == null || dto.getCallbackUrl().isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Callback URL is required");
         }
         if (dto.getParticipants().stream().anyMatch(item -> item.getName() == null || item.getName().isBlank())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "All meeting participants must have names");
@@ -84,7 +80,7 @@ public class MeetingService {
                     participant.getRole().getValue()
             );
             participant.setToken(token);
-            participant.setJoinLink(dto.getJoinBaseUrl() + "/room/" + meeting.getRoomId() + "?token=" + token);
+            participant.setJoinLink(DEFAULT_JOIN_BASE_URL + "/room/" + meeting.getRoomId() + "?token=" + token);
         }
         meeting.setStatus(MeetingStatus.IN_PROGRESS);
         meeting.setStartedAt(Instant.now());
@@ -165,7 +161,6 @@ public class MeetingService {
             } catch (RuntimeException ex) {
                 meeting.setStatus(MeetingStatus.RECORDING_FAILED);
                 Meeting saved = meetingRepository.save(meeting);
-                callbackService.dispatch(saved);
                 liveKitService.deleteRoom(roomId.toString());
                 return saved;
             }
@@ -174,11 +169,7 @@ public class MeetingService {
         liveKitService.deleteRoom(roomId.toString());
         meeting.setStatus(MeetingStatus.COMPLETED);
         meeting.setEndedAt(Instant.now());
-        Meeting saved = meetingRepository.save(meeting);
-        if (!saved.isRecordingEnabled() || saved.getLiveKitEgressId() == null || saved.getLiveKitEgressId().isBlank()) {
-            callbackService.dispatch(saved);
-        }
-        return saved;
+        return meetingRepository.save(meeting);
     }
 
     @Transactional
@@ -279,7 +270,6 @@ public class MeetingService {
             if (meeting.getStatus() == MeetingStatus.SCHEDULED) {
                 meeting.setStatus(MeetingStatus.FAILED);
                 Meeting saved = meetingRepository.save(meeting);
-                callbackService.dispatch(saved);
             }
         });
     }

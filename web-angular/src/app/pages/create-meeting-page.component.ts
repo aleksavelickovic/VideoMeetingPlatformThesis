@@ -1,14 +1,18 @@
-import {Component, inject, signal} from '@angular/core'
+import {Component, ElementRef, inject, signal, ViewChild} from '@angular/core'
 import {FormArray, FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms'
 import {Router} from '@angular/router'
 import {finalize} from 'rxjs'
 import {
+    Bold,
     ChevronDown,
-    FileUp,
+    Italic,
+    List,
+    ListOrdered,
     LucideAngularModule,
     Monitor,
     Plus,
     Trash2,
+    Underline,
     UserRound,
     Video
 } from 'lucide-angular'
@@ -49,24 +53,63 @@ const presets = [{label: 'HD (1280 × 720)', width: 1280, height: 720}, {
                                                                                                  class="field-control"></label>
                         </div>
                     </section>
-                    <section class="session-card space-y-4 p-5"><h2
-                            class="section-label border-b border-[#1c293d] pb-3">Connection</h2><label><span
-                            class="field-label">Join Base URL</span><input formControlName="joinBaseUrl"
-                                                                           class="field-control"></label><label><span
-                            class="field-label">Callback URL</span><input formControlName="callbackUrl"
-                                                                          class="field-control"
-                                                                          placeholder="https://api.example.com/webhooks/meeting"></label>
-                    </section>
                     <section class="session-card p-5">
-                        <div class="flex items-center justify-between border-b border-[#1c293d] pb-3"><h2
-                                class="section-label">Additional Metadata (optional)</h2><label
-                                class="flex cursor-pointer items-center gap-1 text-xs text-[#86a5d2]">
-                            <lucide-icon [img]="FileUp" class="size-3.5"/>
-                            Import JSON<input type="file" accept="application/json,.json" class="hidden"
-                                              (change)="importJson($event)"></label></div>
-                        <label class="mt-4 block"><span class="field-label">JSON Payload</span><textarea
-                                formControlName="metadata" rows="4" class="field-control resize-y font-mono text-xs"
-                                placeholder='{"department":"engineering"}'></textarea></label></section>
+                        <h2 class="section-label border-b border-[#1c293d] pb-3">Additional Information</h2>
+                        <div class="mt-4">
+                            <span class="field-label">Description (optional)</span>
+                            <div class="overflow-hidden rounded-lg border border-line bg-field focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/20">
+                                <div class="flex flex-wrap items-center gap-1 border-b border-line px-2 py-1.5"
+                                     role="toolbar" aria-label="Description formatting">
+                                    <button type="button" title="Bold (Ctrl/Cmd+B)" aria-label="Bold"
+                                            (mousedown)="formatMetadata($event, 'bold')"
+                                            [class.bg-brand
+                                    /20]="metadataFormatting().bold"
+                                    class="grid size-8 place-items-center rounded text-[#c9d8f2] hover:bg-[#263653]">
+                                    <lucide-icon
+                                            [img]="Bold" class="size-4"/>
+                                    </button>
+                                    <button type="button" title="Italic (Ctrl/Cmd+I)" aria-label="Italic"
+                                            (mousedown)="formatMetadata($event, 'italic')"
+                                            [class.bg-brand
+                                    /20]="metadataFormatting().italic"
+                                    class="grid size-8 place-items-center rounded text-[#c9d8f2] hover:bg-[#263653]">
+                                    <lucide-icon
+                                            [img]="Italic" class="size-4"/>
+                                    </button>
+                                    <button type="button" title="Underline (Ctrl/Cmd+U)" aria-label="Underline"
+                                            (mousedown)="formatMetadata($event, 'underline')"
+                                            [class.bg-brand
+                                    /20]="metadataFormatting().underline"
+                                    class="grid size-8 place-items-center rounded text-[#c9d8f2] hover:bg-[#263653]">
+                                    <lucide-icon
+                                            [img]="Underline" class="size-4"/>
+                                    </button>
+                                    <span class="mx-1 h-5 w-px bg-line"></span>
+                                    <button type="button" title="Bulleted list" aria-label="Bulleted list"
+                                            (mousedown)="formatMetadata($event, 'insertUnorderedList')"
+                                            class="grid size-8 place-items-center rounded text-[#c9d8f2] hover:bg-[#263653]">
+                                        <lucide-icon
+                                                [img]="List" class="size-4"/>
+                                    </button>
+                                    <button type="button" title="Numbered list" aria-label="Numbered list"
+                                            (mousedown)="formatMetadata($event, 'insertOrderedList')"
+                                            class="grid size-8 place-items-center rounded text-[#c9d8f2] hover:bg-[#263653]">
+                                        <lucide-icon
+                                                [img]="ListOrdered" class="size-4"/>
+                                    </button>
+                                </div>
+                                <div #metadataEditor contenteditable="true" role="textbox" aria-multiline="true"
+                                     spellcheck="true"
+                                     data-placeholder="Provide a short description of the meeting"
+                                     class="meeting-editor min-h-[112px] max-h-56 overflow-y-auto px-3 py-2.5 text-sm text-white outline-none"
+                                     (input)="onMetadataInput($event)"
+                                     (keyup)="refreshMetadataFormatting()"
+                                     (mouseup)="refreshMetadataFormatting()"
+                                     (paste)="pasteMetadataAsText($event)"></div>
+                            </div>
+                            <!--                            <p class="mt-1.5 text-xs text-muted">Use the toolbar or keyboard shortcuts to format the description.</p>-->
+                        </div>
+                    </section>
                     <section class="session-card p-5">
                         <div class="flex items-center justify-between border-b border-[#1c293d] pb-3"><h2
                                 class="section-label">Participants</h2>
@@ -142,23 +185,28 @@ export class CreateMeetingPageComponent {
     private readonly router = inject(Router)
     readonly loading = signal(false);
     readonly error = signal('');
+    readonly metadataEmpty = signal(true);
+    readonly metadataFormatting = signal({bold: false, italic: false, underline: false});
+    @ViewChild('metadataEditor') private metadataEditor?: ElementRef<HTMLElement>;
     readonly presets = presets
     readonly form = this.fb.group({
         title: ['', [Validators.required, Validators.maxLength(200)]],
         scheduledAt: ['', Validators.required],
         durationLimitMinutes: [60, [Validators.required, Validators.min(1), Validators.max(480)]],
-        joinBaseUrl: [window.location.origin, Validators.required],
-        callbackUrl: ['', Validators.required],
         metadata: [''],
         recordingWidth: [1280, [Validators.min(1)]],
         recordingHeight: [720, [Validators.min(1)]],
         participants: this.fb.array([this.participant('host'), this.participant('guest'), this.participant('guest')])
     })
     recordingEnabled = false
-    protected readonly FileUp = FileUp;
     protected readonly Plus = Plus;
     protected readonly Trash2 = Trash2;
     protected readonly Monitor = Monitor
+    protected readonly Bold = Bold
+    protected readonly Italic = Italic
+    protected readonly Underline = Underline
+    protected readonly List = List
+    protected readonly ListOrdered = ListOrdered
 
     get participants(): FormArray {
         return this.form.controls.participants
@@ -199,14 +247,40 @@ export class CreateMeetingPageComponent {
         this.form.controls.recordingHeight.setValue(height)
     }
 
-    importJson(event: Event): void {
-        const file = (event.target as HTMLInputElement).files?.[0];
-        if (!file) return;
-        file.text().then(text => {
-            JSON.parse(text);
-            this.form.controls.metadata.setValue(JSON.stringify(JSON.parse(text), null, 2));
-            this.error.set('')
-        }).catch(() => this.error.set('The selected file is not valid JSON.'))
+    formatMetadata(event: MouseEvent, command: string): void {
+        event.preventDefault();
+        document.execCommand(command, false);
+        this.syncMetadata(this.metadataEditor?.nativeElement);
+        this.refreshMetadataFormatting()
+    }
+
+    onMetadataInput(event: Event): void {
+        const editor = event.target as HTMLElement;
+        this.syncMetadata(editor);
+        this.refreshMetadataFormatting()
+    }
+
+    private syncMetadata(editor: HTMLElement | undefined): void {
+        if (!editor) return;
+        const isEmpty = !editor.textContent?.trim();
+        this.metadataEmpty.set(isEmpty);
+        this.form.controls.metadata.setValue(isEmpty ? '' : editor.innerHTML);
+    }
+
+    pasteMetadataAsText(event: ClipboardEvent): void {
+        event.preventDefault();
+        const text = event.clipboardData?.getData('text/plain') ?? '';
+        document.execCommand('insertText', false, text);
+        this.syncMetadata(this.metadataEditor?.nativeElement);
+        this.refreshMetadataFormatting()
+    }
+
+    refreshMetadataFormatting(): void {
+        this.metadataFormatting.set({
+            bold: document.queryCommandState('bold'),
+            italic: document.queryCommandState('italic'),
+            underline: document.queryCommandState('underline')
+        })
     }
 
     submit(): void {
@@ -218,8 +292,8 @@ export class CreateMeetingPageComponent {
             role: item.role as ParticipantRole
         }));
         const hostCount = participants.filter(item => item.role === 'host').length
-        if (this.form.invalid || hostCount !== 1 || participants.some(item => !item.name) || !this.absoluteUrl(data.joinBaseUrl) || !this.absoluteUrl(data.callbackUrl)) {
-            this.error.set('Complete all required fields with a future date, valid URLs, and exactly one host.');
+        if (this.form.invalid || hostCount !== 1 || participants.some(item => !item.name)) {
+            this.error.set('Complete all required fields with a future date and exactly one host.');
             return
         }
         const scheduledAt = new Date(data.scheduledAt as string);
@@ -227,15 +301,7 @@ export class CreateMeetingPageComponent {
             this.error.set('Scheduled date and time must be in the future.');
             return
         }
-        let metadata: unknown = null;
-        const rawMetadata = data.metadata?.trim() ?? '';
-        if (rawMetadata) {
-            try {
-                metadata = JSON.parse(rawMetadata)
-            } catch {
-                metadata = rawMetadata
-            }
-        }
+        const rawMetadata = this.metadataEmpty() ? '' : (data.metadata?.trim() ?? '');
         const dto: CreateMeetingDto = {
             title: data.title?.trim() ?? '',
             scheduledAt: scheduledAt.toISOString(),
@@ -247,9 +313,7 @@ export class CreateMeetingPageComponent {
                 width: this.even(Number(data.recordingWidth)),
                 height: this.even(Number(data.recordingHeight))
             },
-            callbackUrl: data.callbackUrl?.trim() ?? '',
-            joinBaseUrl: data.joinBaseUrl?.trim() ?? '',
-            metadata
+            metadata: rawMetadata || null
         }
         this.loading.set(true);
         this.api.createMeeting(dto).pipe(finalize(() => this.loading.set(false))).subscribe({
@@ -258,15 +322,6 @@ export class CreateMeetingPageComponent {
                 this.router.navigateByUrl('/meeting-created')
             }, error: error => this.error.set(error.error?.message || error.message || 'Meeting could not be created.')
         })
-    }
-
-    private absoluteUrl(value: string | null): boolean {
-        try {
-            const url = new URL(value ?? '');
-            return Boolean(url.protocol && url.host)
-        } catch {
-            return false
-        }
     }
 
     private even(value: number): number {

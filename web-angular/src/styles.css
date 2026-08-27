@@ -55,6 +55,26 @@ button:disabled {
     @apply w-full rounded-lg border border-line bg-field px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-[#60718c] focus:border-brand focus:ring-2 focus:ring-brand/20;
 }
 
+.meeting-editor ul {
+    list-style: disc;
+    padding-left: 1.5rem;
+}
+
+.meeting-editor:empty::before {
+    color: #60718c;
+    content: attr(data-placeholder);
+    pointer-events: none;
+}
+
+.meeting-editor ol {
+    list-style: decimal;
+    padding-left: 1.5rem;
+}
+
+.meeting-editor li {
+    padding-left: .25rem;
+}
+
 .btn-primary {
     @apply inline-flex items-center justify-center gap-2 rounded-lg bg-brand px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#3475e5] disabled:opacity-50;
 }
