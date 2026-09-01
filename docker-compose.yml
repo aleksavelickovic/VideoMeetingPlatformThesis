@@ -24,6 +24,12 @@ services:
       - S3_REGION=us-east-1
       - S3_PRESIGNED_URL_EXPIRY_HOURS=24
       - API_AUTH_JWT_SECRET=change-this-secret-change-this-secret
+      - MAIL_HOST=mailhog
+      - MAIL_PORT=1025
+      - MAIL_SMTP_AUTH=false
+      - MAIL_SMTP_STARTTLS=false
+      - MAIL_ENABLED=true
+      - MAIL_FROM=no-reply@lillyrecorder.local
       - TZ=Europe/Belgrade
     depends_on:
       postgres:
@@ -33,6 +39,8 @@ services:
       livekit:
         condition: service_started
       minio:
+        condition: service_started
+      mailhog:
         condition: service_started
     networks:
       - lilly-net
@@ -160,6 +168,14 @@ services:
       "
     networks:
       - lilly-net
+
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    ports:
+      - "8025:8025"
+    networks:
+      - lilly-net
+    restart: unless-stopped
 
 networks:
   lilly-net:

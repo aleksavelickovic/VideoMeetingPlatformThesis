@@ -15,6 +15,7 @@ public class SystemConfigurationProperties {
     private final S3 s3 = new S3();
     private final RecordingDefaults recordingDefaults = new RecordingDefaults();
     private final Auth auth = new Auth();
+    private final Mail mail = new Mail();
 
     public String getFrontendUrl() {
         return frontendUrl;
@@ -54,6 +55,18 @@ public class SystemConfigurationProperties {
 
     public Auth getAuth() {
         return auth;
+    }
+
+    public Mail getMail() { return mail; }
+
+    public static class Mail {
+        private boolean enabled = true;
+        private String from = "no-reply@lillyrecorder.local";
+
+        public boolean isEnabled() { return enabled; }
+        public void setEnabled(boolean enabled) { this.enabled = enabled; }
+        public String getFrom() { return from; }
+        public void setFrom(String from) { this.from = from; }
     }
 
     public static class LiveKit {

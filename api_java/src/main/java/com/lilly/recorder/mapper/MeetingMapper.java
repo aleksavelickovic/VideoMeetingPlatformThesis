@@ -48,6 +48,8 @@ public class MeetingMapper {
             Participant participant = new Participant();
             participant.setMeeting(meeting);
             participant.setName(item.getName());
+            participant.setEmail(item.getEmail());
+            participant.setInvitationText(item.getInvitationText());
             participant.setRole(ParticipantRole.fromValue(item.getRole()));
             return participant;
         }).collect(java.util.stream.Collectors.toCollection(ArrayList::new));
