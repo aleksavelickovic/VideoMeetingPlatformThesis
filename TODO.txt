@@ -1,6 +1,6 @@
 Gasenje sastanka - 15 minuta od kraja (ne pocetka)
-Mejlovi (summarty - free text i linkovi)
-Invintation text pored summary-a
+Mejlovi (summarty - free text i linkovi)*
+Invintation text pored summary-a*
 Connection deo izbaciti*
 Meeting decription (summary) umesto additional medatadata u RichText umesto JSON*
 Editovanje sastanka samo za ulogovanog korisnika (ako nije poceo ili se niko nije pridruzio 15min ranije)
