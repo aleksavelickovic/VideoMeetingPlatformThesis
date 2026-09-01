@@ -146,6 +146,24 @@ button:disabled {
     box-shadow: inset 0 1px 2px rgba(37, 99, 235, .05), 0 1px 2px rgba(30, 64, 120, .03);
 }
 
+.participant-row {
+    transition: background-color .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+
+.participant-row-active {
+    border-color: rgb(var(--color-line));
+    background: rgba(239, 246, 255, .42);
+}
+
+.participant-details {
+    animation: participant-details-in .22s ease-out both;
+}
+
+@keyframes participant-details-in {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 .meeting-editor ul {
     list-style: disc;
     padding-left: 1.5rem;

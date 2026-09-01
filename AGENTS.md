@@ -20,6 +20,8 @@ Use Java 21 and Spring Boot conventions: 4-space indentation, constructor inject
 
 For React/TypeScript, follow the existing style: 4-space indentation, single quotes, no semicolons, PascalCase component/page filenames, and `use*` hook names. Keep API calls in `web/src/api/` and shared types in `web/src/types/`.
 
+Do not put comments in the code, unless absolutely necessary.If you do need to write comments, write them in a human-like manner, same as a real human developer would do it.
+
 ## Testing Guidelines
 
 Manually verify meeting creation, pre-join, in-call controls, recording behavior, and post-call flows. No automated unit, integration, or end-to-end tests are needed. Never write tests of any kind.

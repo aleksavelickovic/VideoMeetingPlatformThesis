@@ -37,6 +37,7 @@ public class MeetingService {
     private final S3Service s3Service;
     private final MeetingMapper meetingMapper;
     private final SystemConfigurationProperties properties;
+    private final MeetingEmailService meetingEmailService;
 
     public MeetingService(
             MeetingRepository meetingRepository,
@@ -44,7 +45,8 @@ public class MeetingService {
             LiveKitService liveKitService,
             S3Service s3Service,
             MeetingMapper meetingMapper,
-            SystemConfigurationProperties properties
+            SystemConfigurationProperties properties,
+            MeetingEmailService meetingEmailService
     ) {
         this.meetingRepository = meetingRepository;
         this.participantRepository = participantRepository;
@@ -52,6 +54,7 @@ public class MeetingService {
         this.s3Service = s3Service;
         this.meetingMapper = meetingMapper;
         this.properties = properties;
+        this.meetingEmailService = meetingEmailService;
     }
 
     @Transactional
@@ -98,7 +101,9 @@ public class MeetingService {
             meeting.setRecordingS3Bucket(properties.getS3().getBucket());
             meeting.setRecordingS3Key(s3Key);
         }
-        return meetingRepository.save(meeting);
+        meeting = meetingRepository.save(meeting);
+        meetingEmailService.sendInvitations(meeting);
+        return meeting;
     }
 
     @Transactional(readOnly = true)

@@ -10,6 +10,8 @@ export type MeetingStatus =
 export interface CreateParticipantDto {
     name: string;
     role: ParticipantRole
+    email?: string | null
+    invitationText?: string | null
 }
 
 export interface RecordingConfig {

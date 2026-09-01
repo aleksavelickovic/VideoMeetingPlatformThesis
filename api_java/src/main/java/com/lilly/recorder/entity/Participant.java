@@ -26,6 +26,12 @@ public class Participant extends BaseEntity {
     @Column(nullable = false)
     private String name;
 
+    @Column(length = 254)
+    private String email;
+
+    @Column(columnDefinition = "text")
+    private String invitationText;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ParticipantRole role = ParticipantRole.GUEST;
@@ -58,6 +64,11 @@ public class Participant extends BaseEntity {
     public void setName(String name) {
         this.name = name;
     }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    public String getInvitationText() { return invitationText; }
+    public void setInvitationText(String invitationText) { this.invitationText = invitationText; }
 
     public ParticipantRole getRole() {
         return role;

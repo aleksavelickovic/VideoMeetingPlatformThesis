@@ -117,11 +117,13 @@ const presets = [{label: 'HD (1280 × 720)', width: 1280, height: 720}, {
                             </button>
                         </div>
                         <div formArrayName="participants"
-                             class="mt-4 space-y-2">@for (participant of participants.controls; track $index) {
-                            <div [formGroupName]="$index"
-                                 class="grid grid-cols-[34px_minmax(0,1fr)_72px_24px] items-center gap-2"><span
+                             class="mt-4 space-y-3">@for (participant of participants.controls; track $index) {
+                            <div [formGroupName]="$index" class="participant-row rounded-lg border border-transparent p-1"
+                                 [class.participant-row-active]="focusedParticipantIndex() === $index">
+                                <div class="grid grid-cols-[34px_minmax(0,1fr)_72px_24px] items-center gap-2"><span
                                     class="grid size-7 place-items-center rounded-full border border-brand/40 bg-blue-100 text-[10px] font-semibold text-blue-700">{{ initials(participant.value.name) }}</span><input
-                                    formControlName="name" class="field-control py-2" placeholder="Participant name">
+                                    formControlName="name" class="field-control py-2" placeholder="Participant name"
+                                    (focus)="focusParticipant($index)">
                                 <button type="button" (click)="makeHost($index)"
                                         class="rounded-md border px-2 py-2 text-[10px] font-bold"
                                         [class.border-amber]="participant.value.role === 'host'"
@@ -134,6 +136,16 @@ const presets = [{label: 'HD (1280 × 720)', width: 1280, height: 720}, {
                                         class="text-muted hover:text-danger disabled:opacity-30">
                                     <lucide-icon [img]="Trash2" class="size-4"/>
                                 </button>
+                                </div>
+                                @if (focusedParticipantIndex() === $index) {
+                                    <div class="participant-details mt-2 grid gap-2 pl-9 sm:grid-cols-2">
+                                        <label><span class="field-label">Email (optional)</span><input type="email"
+                                            formControlName="email" class="field-control py-2" placeholder="name@example.com"></label>
+                                        <label><span class="field-label">Invitation text (optional)</span><textarea
+                                            formControlName="invitationText" rows="1" class="field-control min-h-10 resize-y py-2"
+                                            placeholder="A short personal note"></textarea></label>
+                                    </div>
+                                }
                             </div>
                         }</div>
                     </section>
@@ -184,6 +196,7 @@ export class CreateMeetingPageComponent {
     readonly error = signal('');
     readonly metadataEmpty = signal(true);
     readonly metadataFormatting = signal({bold: false, italic: false, underline: false});
+    readonly focusedParticipantIndex = signal<number | null>(null);
     @ViewChild('metadataEditor') private metadataEditor?: ElementRef<HTMLElement>;
     readonly presets = presets
     readonly form = this.fb.group({
@@ -210,7 +223,11 @@ export class CreateMeetingPageComponent {
     }
 
     private participant(role: ParticipantRole) {
-        return this.fb.group({name: ['', Validators.required], role: [role]})
+        return this.fb.group({name: ['', Validators.required], email: [''], invitationText: [''], role: [role]})
+    }
+
+    focusParticipant(index: number): void {
+        this.focusedParticipantIndex.set(index)
     }
 
     initials(value: string | null | undefined): string {
@@ -286,7 +303,9 @@ export class CreateMeetingPageComponent {
         const data = this.form.getRawValue();
         const participants = data.participants.map(item => ({
             name: item.name?.trim() ?? '',
-            role: item.role as ParticipantRole
+            role: item.role as ParticipantRole,
+            email: item.email?.trim() || null,
+            invitationText: item.invitationText?.trim() || null
         }));
         const hostCount = participants.filter(item => item.role === 'host').length
         if (this.form.invalid || hostCount !== 1 || participants.some(item => !item.name)) {
