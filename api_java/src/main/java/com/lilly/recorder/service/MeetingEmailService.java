@@ -44,6 +44,43 @@ public class MeetingEmailService {
         }
     }
 
+    public void sendNotes(Meeting meeting) {
+        String notes = richText(meeting.getNotes());
+        if (notes.isBlank()) return;
+        for (Participant participant : meeting.getParticipants()) {
+            if (participant.getEmail() == null || participant.getEmail().isBlank()) continue;
+            try {
+                MimeMessage message = mailSender.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(message, false, "UTF-8");
+                helper.setFrom(properties.getMail().getFrom());
+                helper.setTo(participant.getEmail());
+                helper.setSubject("Meeting notes: " + meeting.getTitle());
+                helper.setText(buildNotesHtml(meeting, participant, notes), true);
+                mailSender.send(message);
+            } catch (Exception exception) {
+                log.warn("Could not send meeting notes to {}", participant.getEmail(), exception);
+            }
+        }
+    }
+
+    private String buildNotesHtml(Meeting meeting, Participant participant, String notes) {
+        return """
+                <!doctype html><html><body style="margin:0;background:#f4f7fb;font-family:Arial,sans-serif;color:#172033">
+                <div style="max-width:620px;margin:0 auto;padding:32px 16px">
+                  <div style="background:#172554;padding:24px 28px;border-radius:16px 16px 0 0;color:white">
+                    <div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;opacity:.8">Lilly Meetings</div>
+                    <h1 style="margin:12px 0 0;font-size:26px">Notes from %s</h1>
+                  </div>
+                  <div style="background:white;padding:28px;border-radius:0 0 16px 16px;box-shadow:0 8px 24px #1e40781c">
+                    <p style="margin:0 0 20px;font-size:16px">Hello %s, here are the notes from the meeting.</p>
+                    <div style="border:1px solid #dbeafe;border-radius:12px;padding:20px;line-height:1.65;color:#475569">%s</div>
+                    <p style="margin:24px 0 0;font-size:13px;color:#64748b">Meeting ended: %s</p>
+                  </div>
+                </div></body></html>
+                """.formatted(escape(meeting.getTitle()), escape(participant.getName()), notes,
+                meeting.getEndedAt() == null ? "—" : DATE_FORMAT.format(meeting.getEndedAt()));
+    }
+
     private void sendInvitation(Meeting meeting, Participant participant) throws MessagingException {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, false, "UTF-8");
@@ -104,7 +141,6 @@ public class MeetingEmailService {
             html = objectMapper.readValue(storedMetadata, String.class);
         } catch (Exception ignored) {
         }
-        // The editor only exposes basic formatting. Remove active content before placing it in an email.
         return html.replaceAll("(?is)<!--.*?-->|<\\s*(script|style)[^>]*>.*?<\\s*/\\s*\\1\\s*>", "")
                 .replaceAll("(?i)\\s+on[a-z]+\\s*=\\s*(\"[^\"]*\"|'[^']*'|[^\\s>]+)", "")
                 .replaceAll("(?i)javascript:", "");
