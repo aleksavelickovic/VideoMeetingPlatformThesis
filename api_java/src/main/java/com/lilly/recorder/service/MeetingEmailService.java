@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lilly.recorder.config.SystemConfigurationProperties;
 import com.lilly.recorder.entity.Meeting;
 import com.lilly.recorder.entity.Participant;
+import com.lilly.recorder.constants.ParticipantRole;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
@@ -15,21 +16,26 @@ import org.springframework.web.util.HtmlUtils;
 
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
 @Service
 public class MeetingEmailService {
     private static final Logger log = LoggerFactory.getLogger(MeetingEmailService.class);
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy. HH:mm")
             .withZone(ZoneId.systemDefault());
+    private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("hh:mm:ss a", Locale.ENGLISH)
+            .withZone(ZoneId.systemDefault());
 
     private final JavaMailSender mailSender;
     private final SystemConfigurationProperties properties;
     private final ObjectMapper objectMapper;
+    private final S3Service s3Service;
 
-    public MeetingEmailService(JavaMailSender mailSender, SystemConfigurationProperties properties, ObjectMapper objectMapper) {
+    public MeetingEmailService(JavaMailSender mailSender, SystemConfigurationProperties properties, ObjectMapper objectMapper, S3Service s3Service) {
         this.mailSender = mailSender;
         this.properties = properties;
         this.objectMapper = objectMapper;
+        this.s3Service = s3Service;
     }
 
     public void sendInvitations(Meeting meeting) {
@@ -45,8 +51,7 @@ public class MeetingEmailService {
     }
 
     public void sendNotes(Meeting meeting) {
-        String notes = richText(meeting.getNotes());
-        if (notes.isBlank()) return;
+        if (!properties.getMail().isEnabled()) return;
         for (Participant participant : meeting.getParticipants()) {
             if (participant.getEmail() == null || participant.getEmail().isBlank()) continue;
             try {
@@ -54,8 +59,8 @@ public class MeetingEmailService {
                 MimeMessageHelper helper = new MimeMessageHelper(message, false, "UTF-8");
                 helper.setFrom(properties.getMail().getFrom());
                 helper.setTo(participant.getEmail());
-                helper.setSubject("Meeting notes: " + meeting.getTitle());
-                helper.setText(buildNotesHtml(meeting, participant, notes), true);
+                helper.setSubject("Meeting report: " + meeting.getTitle());
+                helper.setText(buildReportHtml(meeting, participant), true);
                 mailSender.send(message);
             } catch (Exception exception) {
                 log.warn("Could not send meeting notes to {}", participant.getEmail(), exception);
@@ -63,22 +68,100 @@ public class MeetingEmailService {
         }
     }
 
-    private String buildNotesHtml(Meeting meeting, Participant participant, String notes) {
-        return """
+    private String buildReportHtml(Meeting meeting, Participant recipient) {
+        String summary = richText(meeting.getMetadata());
+        String notes = richText(meeting.getNotes());
+        String recordingUrl = meeting.getRecordingS3Bucket() == null || meeting.getRecordingS3Key() == null ? "" :
+                s3Service.generatePresignedUrl(meeting.getRecordingS3Bucket(), meeting.getRecordingS3Key());
+        String resolution = meeting.isRecordingEnabled() ? meeting.getRecordingHeight() + "p" : "Off";
+        String template = """
                 <!doctype html><html><body style="margin:0;background:#f4f7fb;font-family:Arial,sans-serif;color:#172033">
                 <div style="max-width:620px;margin:0 auto;padding:32px 16px">
-                  <div style="background:#172554;padding:24px 28px;border-radius:16px 16px 0 0;color:white">
+                <div style="background:#172554;padding:24px 28px;border-radius:16px 16px 0 0;color:white">
                     <div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;opacity:.8">Lilly Meetings</div>
-                    <h1 style="margin:12px 0 0;font-size:26px">Notes from %s</h1>
-                  </div>
-                  <div style="background:white;padding:28px;border-radius:0 0 16px 16px;box-shadow:0 8px 24px #1e40781c">
-                    <p style="margin:0 0 20px;font-size:16px">Hello %s, here are the notes from the meeting.</p>
-                    <div style="border:1px solid #dbeafe;border-radius:12px;padding:20px;line-height:1.65;color:#475569">%s</div>
-                    <p style="margin:24px 0 0;font-size:13px;color:#64748b">Meeting ended: %s</p>
-                  </div>
+                    <h1 style="margin:12px 0 0;font-size:26px">Meeting ended</h1>
+                    <p style="margin:8px 0 0;font-size:17px;opacity:.9">{{title}}</p>
+                </div>
+                <div style="background:white;padding:28px;border-radius:0 0 16px 16px;box-shadow:0 8px 24px #1e40781c">
+                    <p style="margin:0 0 20px;font-size:16px">Hello {{recipient}}, here is your meeting summary.</p>
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0"><tr>
+                      <td style="width:33%;padding-right:6px"><div style="border-top:3px solid #60a5fa;background:#f8fafc;padding:14px"><div style="font-size:12px;color:#64748b">Duration</div><strong style="display:block;margin-top:8px;font-size:18px">{{duration}}</strong></div></td>
+                      <td style="width:33%;padding:0 3px"><div style="border-top:3px solid #34d399;background:#f8fafc;padding:14px"><div style="font-size:12px;color:#64748b">Participants joined</div><strong style="display:block;margin-top:8px;font-size:18px">{{joined}} / {{total}}</strong></div></td>
+                      <td style="width:33%;padding-left:6px"><div style="border-top:3px solid #a78bfa;background:#f8fafc;padding:14px"><div style="font-size:12px;color:#64748b">Recording</div><strong style="display:block;margin-top:8px;font-size:15px">{{resolution}}</strong></div></td>
+                    </tr></table>
+                    <div style="margin-top:12px;padding:13px 16px;border:1px solid #e2e8f0;border-radius:10px;color:#475569;font-size:13px">
+                      <strong>Started:</strong> {{started}} &nbsp;·&nbsp; <strong>Ended:</strong> {{ended}}
+                    </div>
+                    {{summary}}
+                    {{notes}}
+                    <h2 style="font-size:16px;margin:28px 0 10px">Participant activity</h2>
+                    <div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden">{{participants}}</div>
+                    {{recordings}}
+                </div>
                 </div></body></html>
-                """.formatted(escape(meeting.getTitle()), escape(participant.getName()), notes,
-                meeting.getEndedAt() == null ? "—" : DATE_FORMAT.format(meeting.getEndedAt()));
+                """;
+        return template.replace("{{title}}", escape(meeting.getTitle()))
+                .replace("{{recipient}}", escape(recipient.getName()))
+                .replace("{{duration}}", formatElapsedDuration(durationSeconds(meeting)))
+                .replace("{{joined}}", String.valueOf(joinedCount(meeting)))
+                .replace("{{total}}", String.valueOf(meeting.getParticipants().size()))
+                .replace("{{resolution}}", escape(resolution))
+                .replace("{{started}}", meetingTime(meeting.getStartedAt()))
+                .replace("{{ended}}", meetingTime(meeting.getEndedAt()))
+                .replace("{{summary}}", reportSection("Summary", summary))
+                .replace("{{notes}}", reportSection("Meeting notes", notes))
+                .replace("{{participants}}", participantRows(meeting))
+                .replace("{{recordings}}", recordingSection(meeting, recipient, recordingUrl));
+    }
+
+    private String reportSection(String heading, String content) {
+        return content.isBlank() ? "" : "<section style=\"margin:24px 0\"><h2 style=\"font-size:16px;margin:0 0 10px\">" + heading + "</h2><div style=\"border:1px solid #dbeafe;border-radius:12px;padding:18px;line-height:1.65;color:#475569\">" + content + "</div></section>";
+    }
+
+    private String participantRows(Meeting meeting) {
+        return meeting.getParticipants().stream().map(participant -> {
+            String activity = participant.getJoinedAt() == null ? "Did not join" :
+                    "Joined: " + TIME_FORMAT.format(participant.getJoinedAt()) + " · Left: " +
+                            (participant.getLeftAt() == null ? "Still in meeting" : TIME_FORMAT.format(participant.getLeftAt()));
+            return "<div style=\"padding:13px 16px;border-bottom:1px solid #e2e8f0\"><strong>" + escape(participant.getName()) +
+                    (participant.getRole() == ParticipantRole.HOST ? " <span style=\"color:#d97706;font-size:11px\">HOST</span>" : "") +
+                    "</strong><div style=\"margin-top:4px;color:#64748b;font-size:12px\">" + escape(activity) + "</div></div>";
+        }).collect(java.util.stream.Collectors.joining());
+    }
+
+    private String recordingSection(Meeting meeting, Participant recipient, String recordingUrl) {
+        if (recipient.getRole() != ParticipantRole.HOST || !meeting.isRecordingEnabled()) return "";
+        StringBuilder html = new StringBuilder("<section style=\"margin:26px 0 0\"><h2 style=\"font-size:16px;margin:0 0 10px\">Recordings</h2>");
+        if (!recordingUrl.isBlank()) html.append(button(recordingUrl, "Download full meeting recording"));
+        for (Participant participant : meeting.getParticipants()) {
+            if (meeting.getRecordingS3Bucket() == null || participant.getRecordingS3Key() == null) continue;
+            String url = s3Service.generatePresignedUrl(meeting.getRecordingS3Bucket(), participant.getRecordingS3Key());
+            html.append(button(url, "Download " + participant.getName() + " recording"));
+        }
+        return html.append("</section>").toString();
+    }
+
+    private String button(String url, String label) {
+        return "<a href=\"" + escapeAttribute(url) + "\" style=\"display:inline-block;background:#2563eb;color:#fff;text-decoration:none;font-weight:bold;padding:11px 16px;border-radius:8px;margin:0 8px 8px 0;font-size:13px\">" + escape(label) + "</a>";
+    }
+
+    private int joinedCount(Meeting meeting) {
+        return (int) meeting.getParticipants().stream().filter(participant -> participant.getJoinedAt() != null).count();
+    }
+
+    private long durationSeconds(Meeting meeting) {
+        if (meeting.getStartedAt() == null || meeting.getEndedAt() == null) return meeting.getDurationLimitMinutes() * 60L;
+        return Math.max(0, java.time.Duration.between(meeting.getStartedAt(), meeting.getEndedAt()).getSeconds());
+    }
+
+    private String formatElapsedDuration(long seconds) {
+        long minutes = seconds / 60;
+        long remainingSeconds = seconds % 60;
+        return minutes + ":" + String.format("%02d", remainingSeconds);
+    }
+
+    private String meetingTime(java.time.Instant value) {
+        return value == null ? "—" : DATE_FORMAT.format(value);
     }
 
     private void sendInvitation(Meeting meeting, Participant participant) throws MessagingException {
