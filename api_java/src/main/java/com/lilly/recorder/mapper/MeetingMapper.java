@@ -69,6 +69,8 @@ public class MeetingMapper {
         dto.setRecordingEnabled(meeting.isRecordingEnabled());
         dto.setStartedAt(meeting.getStartedAt());
         dto.setEndedAt(meeting.getEndedAt());
+        Object notes = readMetadata(meeting.getNotes());
+        dto.setNotes(notes == null ? null : notes.toString());
         dto.setParticipants(meeting.getParticipants().stream().map(participant -> toParticipantDto(participant, participantPresignedUrls.get(participant.getName()))).toList());
 
         if (meeting.getRecordingS3Key() != null) {

@@ -19,6 +19,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -38,6 +40,7 @@ public class MeetingService {
     private final MeetingMapper meetingMapper;
     private final SystemConfigurationProperties properties;
     private final MeetingEmailService meetingEmailService;
+    private final ObjectMapper objectMapper;
 
     public MeetingService(
             MeetingRepository meetingRepository,
@@ -46,7 +49,8 @@ public class MeetingService {
             S3Service s3Service,
             MeetingMapper meetingMapper,
             SystemConfigurationProperties properties,
-            MeetingEmailService meetingEmailService
+            MeetingEmailService meetingEmailService,
+            ObjectMapper objectMapper
     ) {
         this.meetingRepository = meetingRepository;
         this.participantRepository = participantRepository;
@@ -55,6 +59,7 @@ public class MeetingService {
         this.meetingMapper = meetingMapper;
         this.properties = properties;
         this.meetingEmailService = meetingEmailService;
+        this.objectMapper = objectMapper;
     }
 
     @Transactional
@@ -140,6 +145,11 @@ public class MeetingService {
 
     @Transactional
     public Meeting endMeeting(UUID roomId, EndMeetingReason reason) {
+        return endMeeting(roomId, reason, null);
+    }
+
+    @Transactional
+    public Meeting endMeeting(UUID roomId, EndMeetingReason reason, String notes) {
         if (roomId == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Validation failed");
         }
@@ -147,6 +157,7 @@ public class MeetingService {
         if (meeting.getStatus() != MeetingStatus.IN_PROGRESS) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Meeting is not in progress");
         }
+        setNotes(meeting, notes);
 
         for (Participant participant : meeting.getParticipants()) {
             if (participant.getLiveKitEgressId() != null && !participant.getLiveKitEgressId().isBlank()) {
@@ -165,8 +176,10 @@ public class MeetingService {
                 }
             } catch (RuntimeException ex) {
                 meeting.setStatus(MeetingStatus.RECORDING_FAILED);
+                meeting.setEndedAt(Instant.now());
                 Meeting saved = meetingRepository.save(meeting);
                 liveKitService.deleteRoom(roomId.toString());
+                meetingEmailService.sendNotes(saved);
                 return saved;
             }
         }
@@ -174,7 +187,21 @@ public class MeetingService {
         liveKitService.deleteRoom(roomId.toString());
         meeting.setStatus(MeetingStatus.COMPLETED);
         meeting.setEndedAt(Instant.now());
-        return meetingRepository.save(meeting);
+        Meeting saved = meetingRepository.save(meeting);
+        meetingEmailService.sendNotes(saved);
+        return saved;
+    }
+
+    private void setNotes(Meeting meeting, String notes) {
+        if (notes == null || notes.isBlank()) {
+            meeting.setNotes(null);
+            return;
+        }
+        try {
+            meeting.setNotes(objectMapper.writeValueAsString(notes));
+        } catch (JsonProcessingException exception) {
+            throw new IllegalArgumentException("Unable to serialize meeting notes", exception);
+        }
     }
 
     @Transactional

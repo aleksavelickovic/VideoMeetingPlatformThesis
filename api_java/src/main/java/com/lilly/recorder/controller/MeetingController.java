@@ -3,6 +3,7 @@ package com.lilly.recorder.controller;
 import com.lilly.recorder.constants.EndMeetingReason;
 import com.lilly.recorder.dto.CreateMeetingDto;
 import com.lilly.recorder.dto.CreateMeetingResponse;
+import com.lilly.recorder.dto.EndMeetingDto;
 import com.lilly.recorder.dto.FilterList;
 import com.lilly.recorder.dto.MeetingDto;
 import com.lilly.recorder.dto.MeetingFilterRequest;
@@ -61,8 +62,8 @@ public class MeetingController {
     }
 
     @PostMapping("/{roomId}/end")
-    public ResponseEntity<MeetingDto> endMeeting(@PathVariable UUID roomId) {
-        Meeting meeting = meetingService.endMeeting(roomId, EndMeetingReason.MANUAL);
+    public ResponseEntity<MeetingDto> endMeeting(@PathVariable UUID roomId, @Valid @RequestBody(required = false) EndMeetingDto request) {
+        Meeting meeting = meetingService.endMeeting(roomId, EndMeetingReason.MANUAL, request == null ? null : request.getNotes());
         return ResponseEntity.ok(meetingMapper.toDto(
                 meeting,
                 meetingService.getParticipantPresignedUrls(meeting),

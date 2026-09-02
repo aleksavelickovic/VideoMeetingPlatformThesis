@@ -53,6 +53,10 @@ public class Meeting extends BaseEntity {
     @ColumnTransformer(write = "?::jsonb")
     private String metadata;
 
+    @Column(columnDefinition = "jsonb")
+    @ColumnTransformer(write = "?::jsonb")
+    private String notes;
+
     private Instant startedAt;
     private Instant endedAt;
     private String liveKitEgressId;
@@ -179,6 +183,9 @@ public class Meeting extends BaseEntity {
     public void setMetadata(String metadata) {
         this.metadata = metadata;
     }
+
+    public String getNotes() { return notes; }
+    public void setNotes(String notes) { this.notes = notes; }
 
     public Instant getStartedAt() {
         return startedAt;

@@ -21,8 +21,8 @@ export class MeetingApiService {
         return this.http.get<MeetingDto>(`${this.baseUrl}/meetings/${roomId}`)
     }
 
-    endMeeting(roomId: string): Observable<MeetingDto> {
-        return this.http.post<MeetingDto>(`${this.baseUrl}/meetings/${roomId}/end`, {})
+    endMeeting(roomId: string, notes: string | null = null): Observable<MeetingDto> {
+        return this.http.post<MeetingDto>(`${this.baseUrl}/meetings/${roomId}/end`, {notes})
     }
 
     getMeetings(page = 1, perPage = 20): Observable<FilterList<MeetingDto>> {

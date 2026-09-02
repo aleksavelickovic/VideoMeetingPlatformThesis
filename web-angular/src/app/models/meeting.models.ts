@@ -62,6 +62,7 @@ export interface MeetingDto {
     recordingEnabled: boolean
     startedAt: string | null
     endedAt: string | null
+    notes: string | null
     participants: ParticipantDto[]
     recording: RecordingDto | null
 }

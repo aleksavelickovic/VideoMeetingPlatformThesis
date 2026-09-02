@@ -175,6 +175,15 @@ button:disabled {
     pointer-events: none;
 }
 
+.notes-modal {
+    animation: notes-modal-in .2s ease-out both;
+}
+
+@keyframes notes-modal-in {
+    from { opacity: 0; transform: translateY(8px) scale(.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
 .meeting-editor ol {
     list-style: decimal;
     padding-left: 1.5rem;
