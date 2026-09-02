@@ -1,7 +1,7 @@
 import {Component, ElementRef, OnDestroy, OnInit, ViewChild, computed, inject, signal} from '@angular/core'
 import {ActivatedRoute, Router} from '@angular/router'
 import {firstValueFrom} from 'rxjs'
-import {Bold, Italic, List, ListOrdered, LucideAngularModule, Mic, MicOff, MonitorUp, PhoneOff, Underline, Video, VideoOff} from 'lucide-angular'
+import {Bold, Italic, List, ListOrdered, LucideAngularModule, Mic, MicOff, MonitorUp, PhoneOff, Underline, Video, VideoOff, X} from 'lucide-angular'
 import {RoomEvent} from 'livekit-client'
 import {readJoinIdentity} from '../core/jwt.util'
 import {LiveKitRoomService} from '../core/livekit-room.service'
@@ -87,27 +87,29 @@ import {ParticipantTileComponent} from '../shared/participant-tile.component'
                     </footer>
                 </div>
             }
-            @if (identity.isHost && notesOpen()) {
-                <div class="fixed inset-0 z-30 grid place-items-center bg-slate-950/40 p-4 backdrop-blur-sm" (click)="closeNotes($event)">
+            @if (identity.isHost) {
+                <div class="fixed inset-0 z-30 grid place-items-center bg-slate-950/40 p-4 backdrop-blur-sm" [class.hidden]="!notesOpen()" (click)="closeNotes($event)">
                     <section class="notes-modal w-full max-w-xl rounded-2xl border border-line bg-white p-5 shadow-2xl" (click)="$event.stopPropagation()">
                         <div class="flex items-center justify-between">
                             <div><h2 class="text-lg font-semibold text-slate-900">Meeting notes</h2><p class="mt-1 text-xs text-muted">These notes will be emailed when the meeting ends.</p></div>
-                            <button class="rounded-lg px-3 py-1 text-sm text-muted hover:bg-blue-50 hover:text-brand" (click)="notesOpen.set(false)">Close</button>
+                            <button class="grid size-8 place-items-center rounded-lg text-muted hover:bg-blue-50 hover:text-brand" (click)="notesOpen.set(false)" aria-label="Close notes">
+                                <lucide-icon [img]="X" class="size-4"/>
+                            </button>
                         </div>
                         <div class="mt-4 overflow-hidden rounded-lg border border-line bg-field focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/20">
                             <div class="flex flex-wrap items-center gap-1 border-b border-line bg-blue-50/70 px-2 py-1.5">
-                                <button type="button" class="grid size-8 place-items-center rounded text-slate-600 hover:bg-blue-100" (mousedown)="formatNotes($event, 'bold')"><lucide-icon [img]="Bold" class="size-4"/></button>
-                                <button type="button" class="grid size-8 place-items-center rounded text-slate-600 hover:bg-blue-100" (mousedown)="formatNotes($event, 'italic')"><lucide-icon [img]="Italic" class="size-4"/></button>
-                                <button type="button" class="grid size-8 place-items-center rounded text-slate-600 hover:bg-blue-100" (mousedown)="formatNotes($event, 'underline')"><lucide-icon [img]="Underline" class="size-4"/></button>
+                                <button type="button" class="notes-format-button" [class.notes-format-active]="notesFormatting().bold" (mousedown)="formatNotes($event, 'bold')" aria-label="Bold"><lucide-icon [img]="Bold" class="size-4"/></button>
+                                <button type="button" class="notes-format-button" [class.notes-format-active]="notesFormatting().italic" (mousedown)="formatNotes($event, 'italic')" aria-label="Italic"><lucide-icon [img]="Italic" class="size-4"/></button>
+                                <button type="button" class="notes-format-button" [class.notes-format-active]="notesFormatting().underline" (mousedown)="formatNotes($event, 'underline')" aria-label="Underline"><lucide-icon [img]="Underline" class="size-4"/></button>
                                 <span class="mx-1 h-5 w-px bg-line"></span>
                                 <button type="button" class="grid size-8 place-items-center rounded text-slate-600 hover:bg-blue-100" (mousedown)="formatNotes($event, 'insertUnorderedList')"><lucide-icon [img]="List" class="size-4"/></button>
                                 <button type="button" class="grid size-8 place-items-center rounded text-slate-600 hover:bg-blue-100" (mousedown)="formatNotes($event, 'insertOrderedList')"><lucide-icon [img]="ListOrdered" class="size-4"/></button>
                             </div>
                             <div #notesEditor contenteditable="true" role="textbox" aria-multiline="true" data-placeholder="Write notes about the meeting…"
                                  class="meeting-editor min-h-[220px] max-h-[45vh] overflow-y-auto px-3 py-3 text-sm text-slate-900 outline-none"
-                                 (input)="syncNotes($event)" (paste)="pasteNotesAsText($event)"></div>
+                                 (input)="syncNotes($event)" (keyup)="refreshNotesFormatting()" (mouseup)="refreshNotesFormatting()" (paste)="pasteNotesAsText($event)"></div>
                         </div>
-                        <div class="mt-4 flex justify-end"><button class="btn-primary" (click)="notesOpen.set(false)">Save notes</button></div>
+                        <div class="mt-4 flex justify-end"><button class="rounded-lg border border-danger/40 bg-danger/10 px-4 py-2 text-sm font-semibold text-danger transition hover:bg-danger/20" (click)="clearNotes()">Clear</button></div>
                     </section>
                 </div>
             }
@@ -138,6 +140,7 @@ export class InCallPageComponent implements OnInit, OnDestroy {
     readonly sharing = signal(false)
     readonly notesOpen = signal(false)
     readonly notes = signal('')
+    readonly notesFormatting = signal({bold: false, italic: false, underline: false})
     @ViewChild('notesEditor') private notesEditor?: ElementRef<HTMLElement>
     readonly allParticipants = computed(() => [...(this.livekit.localParticipant() ? [this.livekit.localParticipant()!] : []), ...this.livekit.remoteParticipants()])
     readonly participantCount = computed(() => this.allParticipants().length)
@@ -157,6 +160,7 @@ export class InCallPageComponent implements OnInit, OnDestroy {
     protected readonly Underline = Underline;
     protected readonly List = List;
     protected readonly ListOrdered = ListOrdered
+    protected readonly X = X
 
     async ngOnInit(): Promise<void> {
         if (!this.token) return
@@ -213,6 +217,7 @@ export class InCallPageComponent implements OnInit, OnDestroy {
         event.preventDefault();
         document.execCommand(command, false);
         this.syncNotes(this.notesEditor?.nativeElement)
+        this.refreshNotesFormatting()
     }
 
     syncNotes(source: Event | HTMLElement | undefined): void {
@@ -224,10 +229,24 @@ export class InCallPageComponent implements OnInit, OnDestroy {
         event.preventDefault();
         document.execCommand('insertText', false, event.clipboardData?.getData('text/plain') ?? '')
         this.syncNotes(this.notesEditor?.nativeElement)
+        this.refreshNotesFormatting()
+    }
+
+    refreshNotesFormatting(): void {
+        this.notesFormatting.set({
+            bold: document.queryCommandState('bold'),
+            italic: document.queryCommandState('italic'),
+            underline: document.queryCommandState('underline')
+        })
     }
 
     closeNotes(event: MouseEvent): void {
         if (event.target === event.currentTarget) this.notesOpen.set(false)
+    }
+
+    clearNotes(): void {
+        this.notes.set('')
+        if (this.notesEditor) this.notesEditor.nativeElement.innerHTML = ''
     }
 
     private async finish(): Promise<void> {

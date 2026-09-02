@@ -23,6 +23,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +42,7 @@ public class MeetingService {
     private final SystemConfigurationProperties properties;
     private final MeetingEmailService meetingEmailService;
     private final ObjectMapper objectMapper;
+    private final org.springframework.scheduling.TaskScheduler taskScheduler;
 
     public MeetingService(
             MeetingRepository meetingRepository,
@@ -50,7 +52,8 @@ public class MeetingService {
             MeetingMapper meetingMapper,
             SystemConfigurationProperties properties,
             MeetingEmailService meetingEmailService,
-            ObjectMapper objectMapper
+            ObjectMapper objectMapper,
+            org.springframework.scheduling.TaskScheduler taskScheduler
     ) {
         this.meetingRepository = meetingRepository;
         this.participantRepository = participantRepository;
@@ -60,6 +63,7 @@ public class MeetingService {
         this.properties = properties;
         this.meetingEmailService = meetingEmailService;
         this.objectMapper = objectMapper;
+        this.taskScheduler = taskScheduler;
     }
 
     @Transactional
@@ -179,7 +183,7 @@ public class MeetingService {
                 meeting.setEndedAt(Instant.now());
                 Meeting saved = meetingRepository.save(meeting);
                 liveKitService.deleteRoom(roomId.toString());
-                meetingEmailService.sendNotes(saved);
+                scheduleNotesEmail(saved);
                 return saved;
             }
         }
@@ -188,8 +192,14 @@ public class MeetingService {
         meeting.setStatus(MeetingStatus.COMPLETED);
         meeting.setEndedAt(Instant.now());
         Meeting saved = meetingRepository.save(meeting);
-        meetingEmailService.sendNotes(saved);
+        scheduleNotesEmail(saved);
         return saved;
+    }
+
+    private void scheduleNotesEmail(Meeting meeting) {
+        Long meetingId = meeting.getId();
+        taskScheduler.schedule(() -> meetingRepository.findByIdAndDeletedFalse(meetingId)
+                .ifPresent(meetingEmailService::sendNotes), Instant.now().plus(3, ChronoUnit.SECONDS));
     }
 
     private void setNotes(Meeting meeting, String notes) {

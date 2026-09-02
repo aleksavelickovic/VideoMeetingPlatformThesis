@@ -179,6 +179,14 @@ button:disabled {
     animation: notes-modal-in .2s ease-out both;
 }
 
+.notes-format-button {
+    @apply grid size-8 place-items-center rounded text-slate-600 transition hover:bg-blue-100;
+}
+
+.notes-format-active {
+    @apply bg-blue-100 text-brand outline outline-1 outline-brand/40;
+}
+
 @keyframes notes-modal-in {
     from { opacity: 0; transform: translateY(8px) scale(.98); }
     to { opacity: 1; transform: translateY(0) scale(1); }
