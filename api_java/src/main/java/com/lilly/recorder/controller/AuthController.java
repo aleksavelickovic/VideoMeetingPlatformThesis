@@ -29,4 +29,11 @@ public class AuthController {
     @PutMapping("/me")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<JsonNode> update(@Valid @RequestBody UpdateProfileDto dto, JwtAuthenticationToken authentication) { return ResponseEntity.ok(accountService.update(authentication.getToken().getSubject(), authentication.getToken().getClaimAsString("email"), dto)); }
+
+    @PostMapping("/me/password-reset")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Void> sendPasswordResetEmail(JwtAuthenticationToken authentication) {
+        accountService.sendPasswordResetEmail(authentication.getToken().getSubject(), authentication.getToken().getClaimAsString("email"));
+        return ResponseEntity.noContent().build();
+    }
 }

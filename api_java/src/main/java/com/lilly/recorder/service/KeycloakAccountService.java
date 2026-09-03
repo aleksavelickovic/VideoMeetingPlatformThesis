@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
+import java.util.List;
 
 @Service
 public class KeycloakAccountService {
@@ -65,6 +66,25 @@ public class KeycloakAccountService {
             throw new ResponseStatusException(HttpStatus.valueOf(exception.getStatusCode().value()), "Keycloak rejected profile load", exception);
         } catch (Exception exception) {
             throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Could not load profile from Keycloak", exception);
+        }
+    }
+
+    public void sendPasswordResetEmail(String subject, String email) {
+        try {
+            String adminToken = getAdminToken();
+            String userId = findUserId(adminToken, subject, email);
+            client.put().uri("/users/" + userId + "/execute-actions-email")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(List.of("UPDATE_PASSWORD"))
+                    .retrieve().toBodilessEntity();
+        } catch (ResponseStatusException exception) {
+            throw exception;
+        } catch (RestClientResponseException exception) {
+            log.warn("Keycloak password reset email rejected: status={}, body={}", exception.getStatusCode(), exception.getResponseBodyAsString());
+            throw new ResponseStatusException(HttpStatus.valueOf(exception.getStatusCode().value()), "Keycloak rejected password reset email", exception);
+        } catch (Exception exception) {
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Could not send password reset email", exception);
         }
     }
 

@@ -196,6 +196,7 @@ services:
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME:-admin}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-change-me}
       KC_DB: dev-file
+      KC_HOSTNAME: ${KEYCLOAK_HOSTNAME:-http://localhost:8080}
     ports:
       - "8080:8080"
     volumes:
