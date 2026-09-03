@@ -6,6 +6,7 @@ import com.lilly.recorder.constants.MeetingStatus;
 import com.lilly.recorder.dto.CreateMeetingDto;
 import com.lilly.recorder.dto.FilterList;
 import com.lilly.recorder.dto.MeetingFilterRequest;
+import com.lilly.recorder.dto.UpdateMeetingDto;
 import com.lilly.recorder.entity.Meeting;
 import com.lilly.recorder.entity.Participant;
 import com.lilly.recorder.mapper.MeetingMapper;
@@ -68,14 +69,29 @@ public class MeetingService {
 
     @Transactional
     public Meeting create(CreateMeetingDto dto) {
+        return create(dto, null);
+    }
+
+    @Transactional
+    public Meeting create(CreateMeetingDto dto, String ownerSubject) {
         if (dto.getParticipants() == null || dto.getParticipants().size() < 2) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "At least 2 participants are required");
         }
-        if (dto.getParticipants().stream().anyMatch(item -> item.getName() == null || item.getName().isBlank())) {
+        if (dto.getParticipants().stream().skip(ownerSubject == null ? 0 : 1).anyMatch(item -> item.getName() == null || item.getName().isBlank())
+                || (ownerSubject == null && (dto.getParticipants().get(0).getName() == null || dto.getParticipants().get(0).getName().isBlank()))) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "All meeting participants must have names");
         }
 
         Meeting meeting = meetingMapper.toEntity(dto);
+        meeting.setOwnerSubject(ownerSubject);
+        if (ownerSubject != null && !meeting.getParticipants().isEmpty()) {
+            Participant host = meeting.getParticipants().get(0);
+            host.setName(resolveOwnerName(ownerSubject, host.getName()));
+            host.setRole(com.lilly.recorder.constants.ParticipantRole.HOST);
+            for (int i = 1; i < meeting.getParticipants().size(); i++) {
+                meeting.getParticipants().get(i).setRole(com.lilly.recorder.constants.ParticipantRole.GUEST);
+            }
+        }
         meeting.setRoomId(UUID.randomUUID());
         meeting.setStatus(MeetingStatus.SCHEDULED);
         meeting = meetingRepository.save(meeting);
@@ -113,6 +129,36 @@ public class MeetingService {
         meeting = meetingRepository.save(meeting);
         meetingEmailService.sendInvitations(meeting);
         return meeting;
+    }
+
+    private String resolveOwnerName(String subject, String fallback) {
+        return fallback == null || fallback.isBlank() ? subject : fallback;
+    }
+
+    @Transactional(readOnly = true)
+    public List<Meeting> getMyMeetings(String ownerSubject) {
+        return meetingRepository.findAllByOwnerSubjectAndDeletedFalseOrderByDateCreatedDesc(ownerSubject);
+    }
+
+    @Transactional
+    public Meeting update(UUID roomId, UpdateMeetingDto dto, String ownerSubject) {
+        Meeting meeting = getByRoomId(roomId);
+        if (ownerSubject == null || !ownerSubject.equals(meeting.getOwnerSubject())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only the meeting owner can edit this meeting");
+        }
+        java.util.List<String> changes = new ArrayList<>();
+        if (!java.util.Objects.equals(meeting.getTitle(), dto.getTitle())) { changes.add("title"); meeting.setTitle(dto.getTitle()); }
+        if (!java.util.Objects.equals(meeting.getScheduledAt(), dto.getScheduledAt())) { changes.add("scheduled time"); meeting.setScheduledAt(dto.getScheduledAt()); }
+        if (meeting.getDurationLimitMinutes() != dto.getDurationLimitMinutes()) { changes.add("duration"); meeting.setDurationLimitMinutes(dto.getDurationLimitMinutes()); }
+        if (meeting.isRecordingEnabled() != dto.isRecordingEnabled()) { changes.add("recording"); meeting.setRecordingEnabled(dto.isRecordingEnabled()); }
+        if (meeting.getRecordingWidth() != dto.getRecordingWidth() || meeting.getRecordingHeight() != dto.getRecordingHeight()) { changes.add("recording resolution"); meeting.setRecordingWidth(dto.getRecordingWidth()); meeting.setRecordingHeight(dto.getRecordingHeight()); }
+        String metadata = null;
+        try { metadata = dto.getMetadata() == null || dto.getMetadata().isBlank() ? null : objectMapper.writeValueAsString(dto.getMetadata()); }
+        catch (JsonProcessingException exception) { throw new IllegalArgumentException("Unable to serialize metadata", exception); }
+        if (!java.util.Objects.equals(meeting.getMetadata(), metadata)) { changes.add("description"); meeting.setMetadata(metadata); }
+        Meeting saved = meetingRepository.save(meeting);
+        if (!changes.isEmpty()) meetingEmailService.sendMeetingUpdate(saved, changes);
+        return saved;
     }
 
     @Transactional(readOnly = true)

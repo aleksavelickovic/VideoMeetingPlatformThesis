@@ -1,7 +1,8 @@
 import {Component, inject, input} from '@angular/core'
 import {RouterLink} from '@angular/router'
-import {LucideAngularModule, Moon, Sun, Video} from 'lucide-angular'
+import {LucideAngularModule, Moon, Sun, Video, UserRound} from 'lucide-angular'
 import {ThemeService} from '../core/theme.service'
+import {AuthService} from '../core/auth.service'
 
 @Component({
     selector: 'app-sessions-header',
@@ -17,6 +18,9 @@ import {ThemeService} from '../core/theme.service'
                 @if (title()) {
                     <span class="max-w-[50%] truncate text-xs text-slate-500">{{ title() }}</span>
                 }
+                @if (auth.loggedIn()) { <a routerLink="/my-meetings" class="text-xs font-medium text-brand hover:underline">My meetings</a> }
+                @if (!auth.loggedIn()) { <button type="button" class="btn-secondary px-3 py-1.5 text-xs" (click)="auth.login()">Log in</button><button type="button" class="btn-primary px-3 py-1.5 text-xs" (click)="auth.register()">Register</button> }
+                @if (auth.loggedIn()) { <a routerLink="/profile" class="text-xs text-muted hover:text-brand"><lucide-icon [img]="UserRound" class="mr-1 inline size-4"/>Profile</a><button type="button" class="text-xs text-muted hover:text-danger" (click)="auth.logout()">Log out</button> }
                 <button type="button" class="theme-toggle" (click)="toggleTheme($event)"
                         [attr.aria-label]="theme.isDark() ? 'Switch to light mode' : 'Switch to dark mode'">
                     @if (theme.isDark()) {
@@ -31,10 +35,12 @@ import {ThemeService} from '../core/theme.service'
 })
 export class SessionsHeaderComponent {
     protected readonly theme = inject(ThemeService)
+    protected readonly auth = inject(AuthService)
     readonly title = input('');
     protected readonly Video = Video
     protected readonly Moon = Moon
     protected readonly Sun = Sun
+    protected readonly UserRound = UserRound
 
     toggleTheme(event: Event): void {
         this.theme.toggle(event.currentTarget as HTMLElement)

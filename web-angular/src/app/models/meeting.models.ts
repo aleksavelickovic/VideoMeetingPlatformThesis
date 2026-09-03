@@ -63,6 +63,9 @@ export interface MeetingDto {
     startedAt: string | null
     endedAt: string | null
     notes: string | null
+    metadata: string | null
+    recordingWidth?: number
+    recordingHeight?: number
     participants: ParticipantDto[]
     recording: RecordingDto | null
 }

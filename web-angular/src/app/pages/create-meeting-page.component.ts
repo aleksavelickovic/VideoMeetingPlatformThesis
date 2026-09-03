@@ -1,4 +1,4 @@
-import {Component, ElementRef, inject, signal, ViewChild} from '@angular/core'
+import {Component, ElementRef, effect, inject, signal, ViewChild} from '@angular/core'
 import {FormArray, FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms'
 import {Router} from '@angular/router'
 import {finalize} from 'rxjs'
@@ -21,6 +21,7 @@ import {MeetingStateService} from '../core/meeting-state.service'
 import {CreateMeetingDto, ParticipantRole} from '../models/meeting.models'
 import {DateTimePickerComponent} from '../shared/date-time-picker.component'
 import {SessionsHeaderComponent} from '../shared/sessions-header.component'
+import {AuthService} from '../core/auth.service'
 
 const presets = [{label: 'HD (1280 × 720)', width: 1280, height: 720}, {
     label: 'Full HD (1920 × 1080)',
@@ -192,6 +193,7 @@ export class CreateMeetingPageComponent {
     private readonly api = inject(MeetingApiService);
     private readonly state = inject(MeetingStateService);
     private readonly router = inject(Router)
+    private readonly auth = inject(AuthService)
     readonly loading = signal(false);
     readonly error = signal('');
     readonly metadataEmpty = signal(true);
@@ -217,6 +219,13 @@ export class CreateMeetingPageComponent {
     protected readonly Underline = Underline
     protected readonly List = List
     protected readonly ListOrdered = ListOrdered
+
+    constructor() {
+        effect(() => {
+            const owner = this.auth.profile()
+            if (owner.firstName || owner.lastName) this.participants.at(0).get('name')?.setValue(`${owner.firstName} ${owner.lastName}`.trim(), {emitEvent: false})
+        })
+    }
 
     get participants(): FormArray {
         return this.form.controls.participants

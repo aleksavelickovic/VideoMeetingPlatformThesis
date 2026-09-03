@@ -17,6 +17,7 @@ import org.springframework.web.util.HtmlUtils;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
+import java.util.List;
 
 @Service
 public class MeetingEmailService {
@@ -64,6 +65,25 @@ public class MeetingEmailService {
                 mailSender.send(message);
             } catch (Exception exception) {
                 log.warn("Could not send meeting notes to {}", participant.getEmail(), exception);
+            }
+        }
+    }
+
+    public void sendMeetingUpdate(Meeting meeting, List<String> changes) {
+        if (!properties.getMail().isEnabled()) return;
+        for (Participant participant : meeting.getParticipants()) {
+            if (participant.getEmail() == null || participant.getEmail().isBlank()) continue;
+            try {
+                MimeMessage message = mailSender.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(message, false, "UTF-8");
+                helper.setFrom(properties.getMail().getFrom());
+                helper.setTo(participant.getEmail());
+                helper.setSubject("Meeting updated: " + meeting.getTitle());
+                helper.setText("<p>The meeting <strong>" + escape(meeting.getTitle()) + "</strong> was updated.</p>"
+                        + "<p>Changed data: " + escape(String.join(", ", changes)) + ".</p>", true);
+                mailSender.send(message);
+            } catch (Exception exception) {
+                log.warn("Could not send meeting update to {}", participant.getEmail(), exception);
             }
         }
     }

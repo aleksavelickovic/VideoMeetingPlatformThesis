@@ -15,6 +15,7 @@ public class MeetingDto extends EntityDto {
     private Instant startedAt;
     private Instant endedAt;
     private String notes;
+    private String metadata;
     private List<ParticipantDto> participants = new ArrayList<>();
     private RecordingDto recording;
 
@@ -84,6 +85,8 @@ public class MeetingDto extends EntityDto {
 
     public String getNotes() { return notes; }
     public void setNotes(String notes) { this.notes = notes; }
+    public String getMetadata() { return metadata; }
+    public void setMetadata(String metadata) { this.metadata = metadata; }
 
     public List<ParticipantDto> getParticipants() {
         return participants;

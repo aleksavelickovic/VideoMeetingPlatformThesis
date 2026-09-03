@@ -15,6 +15,9 @@ COPY public/env.template.js /usr/share/nginx/html/env.template.js
 ENV VITE_API_URL=/api
 ENV VITE_LIVEKIT_URL=ws://localhost:7880
 ENV VITE_API_KEY=test123
+ENV VITE_KEYCLOAK_URL=http://localhost:8080
+ENV VITE_KEYCLOAK_REALM=lilly
+ENV VITE_KEYCLOAK_CLIENT_ID=lilly-web
 
 EXPOSE 3000
 CMD ["/bin/sh", "-c", "envsubst < /usr/share/nginx/html/env.template.js > /usr/share/nginx/html/env.js && exec nginx -g 'daemon off;'"]

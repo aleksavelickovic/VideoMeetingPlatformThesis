@@ -28,4 +28,7 @@ export class MeetingApiService {
     getMeetings(page = 1, perPage = 20): Observable<FilterList<MeetingDto>> {
         return this.http.get<FilterList<MeetingDto>>(`${this.baseUrl}/meetings`, {params: new HttpParams().set('page', page).set('perPage', perPage)})
     }
+
+    getMyMeetings(): Observable<MeetingDto[]> { return this.http.get<MeetingDto[]>(`${this.baseUrl}/meetings/mine`) }
+    updateMeeting(roomId: string, dto: unknown): Observable<MeetingDto> { return this.http.put<MeetingDto>(`${this.baseUrl}/meetings/${roomId}`, dto) }
 }
