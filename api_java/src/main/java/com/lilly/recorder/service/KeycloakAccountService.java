@@ -47,6 +47,27 @@ public class KeycloakAccountService {
         } catch (Exception exception) { throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Could not update profile in Keycloak", exception); }
     }
 
+    public JsonNode getProfile(String subject, String email) {
+        try {
+            String adminToken = getAdminToken();
+            String userId = findUserId(adminToken, subject, email);
+            JsonNode user = client.get().uri("/users/" + userId)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
+                    .retrieve().body(JsonNode.class);
+            return objectMapper.createObjectNode()
+                    .put("firstName", user.path("firstName").asText(""))
+                    .put("lastName", user.path("lastName").asText(""))
+                    .put("email", user.path("email").asText(""));
+        } catch (ResponseStatusException exception) {
+            throw exception;
+        } catch (RestClientResponseException exception) {
+            log.warn("Keycloak profile load rejected: status={}, body={}", exception.getStatusCode(), exception.getResponseBodyAsString());
+            throw new ResponseStatusException(HttpStatus.valueOf(exception.getStatusCode().value()), "Keycloak rejected profile load", exception);
+        } catch (Exception exception) {
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Could not load profile from Keycloak", exception);
+        }
+    }
+
     private String findUserId(String adminToken, String subject, String email) {
         if (email != null && !email.isBlank()) {
             JsonNode users = client.get().uri(uriBuilder -> uriBuilder.path("/users").queryParam("email", email).queryParam("exact", true).build())
