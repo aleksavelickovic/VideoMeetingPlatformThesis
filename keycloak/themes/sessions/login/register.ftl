@@ -1,7 +1,6 @@
 <#import "template.ftl" as layout>
 <#import "user-profile-commons.ftl" as userProfileCommons>
 <#import "register-commons.ftl" as registerCommons>
-<#import "password-validation.ftl" as validator>
 <@layout.registrationLayout displayMessage=messagesPerField.exists('global') displayRequiredFields=true; section>
     <#if section = "header">
         <#if messageHeader??>${kcSanitize(msg("${messageHeader}"))?no_esc}<#else>${msg("registerTitle")}</#if>
@@ -26,7 +25,7 @@
                 <div class="form-group"><div class="${properties.kcInputWrapperClass!}"><div class="g-recaptcha" data-size="compact" data-sitekey="${recaptchaSiteKey}" data-action="${recaptchaAction}"></div></div></div>
             </#if>
             <div class="${properties.kcFormGroupClass!}">
-                <div id="kc-form-options" class="${properties.kcFormOptionsClass!}"><div class="${properties.kcFormOptionsWrapperClass!}"><span><a href="${url.loginUrl}">${msg("backToLogin")}</a></span></div></div>
+                <div id="kc-form-options" class="${properties.kcFormOptionsClass!}"><div class="${properties.kcFormOptionsWrapperClass!}"><span><a href="${url.loginUrl}">${kcSanitize(msg("backToLogin"))?no_esc}</a></span></div></div>
                 <#if recaptchaRequired?? && !(recaptchaVisible!false)>
                     <script>function onSubmitRecaptcha(token) { document.getElementById("kc-register-form").requestSubmit(); }</script>
                     <div id="kc-form-buttons" class="${properties.kcFormButtonsClass!}"><button class="${properties.kcButtonClass!} ${properties.kcButtonPrimaryClass!} ${properties.kcButtonBlockClass!} ${properties.kcButtonLargeClass!} g-recaptcha" data-sitekey="${recaptchaSiteKey}" data-callback="onSubmitRecaptcha" data-action="${recaptchaAction}" type="submit">${msg("doRegister")}</button></div>
@@ -35,8 +34,6 @@
                 </#if>
             </div>
         </form>
-        <@validator.templates/>
-        <@validator.script field="password"/>
         <script type="module" src="${url.resourcesPath}/js/passwordVisibility.js"></script>
         <#if social?? && social.providers?has_content>
             <div id="kc-social-providers" class="${properties.kcFormSocialAccountSectionClass!}">
@@ -44,7 +41,7 @@
                 <h2>${msg("identity-provider-login-label")}</h2>
                 <ul class="${properties.kcFormSocialAccountListClass!}">
                     <#list social.providers as p>
-                        <li><a data-once-link data-disabled-class="${properties.kcFormSocialAccountListButtonDisabledClass!}" id="social-${p.alias}" class="${properties.kcFormSocialAccountListButtonClass!}" aria-label="${msg("signInWithProvider", p.displayName!)}" type="button" href="${p.loginUrl}"><#if p.iconClasses?has_content><i class="${properties.kcCommonLogoIdP!} ${p.iconClasses!}" aria-hidden="true"></i></#if><span class="${properties.kcFormSocialAccountNameClass!}">${msg("signInWithProvider", p.displayName!)}</span></a></li>
+                        <li><a data-once-link data-disabled-class="${properties.kcFormSocialAccountListButtonDisabledClass!}" id="social-${p.alias}" class="${properties.kcFormSocialAccountListButtonClass!}" aria-label="Sign in with ${p.displayName!}" type="button" href="${p.loginUrl}"><#if p.iconClasses?has_content><i class="${properties.kcCommonLogoIdP!} ${p.iconClasses!}" aria-hidden="true"></i></#if><span class="${properties.kcFormSocialAccountNameClass!}">${p.displayName!}</span></a></li>
                     </#list>
                 </ul>
             </div>
