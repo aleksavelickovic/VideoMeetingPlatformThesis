@@ -71,6 +71,8 @@ public class MeetingMapper {
         dto.setEndedAt(meeting.getEndedAt());
         Object notes = readMetadata(meeting.getNotes());
         dto.setNotes(notes == null ? null : notes.toString());
+        Object metadata = readMetadata(meeting.getMetadata());
+        dto.setMetadata(metadata == null ? null : metadata.toString());
         dto.setParticipants(meeting.getParticipants().stream().map(participant -> toParticipantDto(participant, participantPresignedUrls.get(participant.getName()))).toList());
 
         if (meeting.getRecordingS3Key() != null) {

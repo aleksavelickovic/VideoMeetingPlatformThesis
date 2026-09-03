@@ -60,6 +60,8 @@ public class Meeting extends BaseEntity {
     private Instant startedAt;
     private Instant endedAt;
     private String liveKitEgressId;
+    @Column(name = "owner_subject")
+    private String ownerSubject;
 
     @OneToMany(mappedBy = "meeting", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Participant> participants = new ArrayList<>();
@@ -210,6 +212,9 @@ public class Meeting extends BaseEntity {
     public void setLiveKitEgressId(String liveKitEgressId) {
         this.liveKitEgressId = liveKitEgressId;
     }
+
+    public String getOwnerSubject() { return ownerSubject; }
+    public void setOwnerSubject(String ownerSubject) { this.ownerSubject = ownerSubject; }
 
     public List<Participant> getParticipants() {
         return participants;

@@ -7,6 +7,7 @@ import com.lilly.recorder.dto.EndMeetingDto;
 import com.lilly.recorder.dto.FilterList;
 import com.lilly.recorder.dto.MeetingDto;
 import com.lilly.recorder.dto.MeetingFilterRequest;
+import com.lilly.recorder.dto.UpdateMeetingDto;
 import com.lilly.recorder.entity.Meeting;
 import com.lilly.recorder.mapper.MeetingMapper;
 import com.lilly.recorder.service.MeetingService;
@@ -19,6 +20,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.PutMapping;
 
 import java.util.UUID;
 
@@ -36,8 +39,24 @@ public class MeetingController {
 
     @PostMapping
     public ResponseEntity<CreateMeetingResponse> create(@Valid @RequestBody CreateMeetingDto dto) {
-        Meeting meeting = meetingService.create(dto);
+        Authentication authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        String owner = authentication != null && authentication.isAuthenticated() && !"anonymousUser".equals(authentication.getName()) ? authentication.getName() : null;
+        Meeting meeting = meetingService.create(dto, owner);
         return ResponseEntity.ok(meetingMapper.toCreateResponse(meeting));
+    }
+
+    @GetMapping("/mine")
+    public ResponseEntity<java.util.List<MeetingDto>> getMine(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) return ResponseEntity.status(401).build();
+        return ResponseEntity.ok(meetingService.getMyMeetings(authentication.getName()).stream()
+                .map(meeting -> meetingMapper.toDto(meeting, java.util.Map.of(), meetingService.getMeetingPresignedUrl(meeting))).toList());
+    }
+
+    @PutMapping("/{roomId}")
+    public ResponseEntity<MeetingDto> update(@PathVariable UUID roomId, @Valid @RequestBody UpdateMeetingDto dto, Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) return ResponseEntity.status(401).build();
+        Meeting meeting = meetingService.update(roomId, dto, authentication.getName());
+        return ResponseEntity.ok(meetingMapper.toDto(meeting, java.util.Map.of(), meetingService.getMeetingPresignedUrl(meeting)));
     }
 
     @GetMapping

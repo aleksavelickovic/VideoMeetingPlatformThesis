@@ -21,4 +21,7 @@ public interface MeetingRepository extends JpaRepository<Meeting, Long>, JpaSpec
     Optional<Meeting> findByLiveKitEgressIdAndDeletedFalse(String liveKitEgressId);
 
     List<Meeting> findAllByStatusAndDeletedFalse(MeetingStatus status);
+
+    @EntityGraph(attributePaths = {"participants"})
+    List<Meeting> findAllByOwnerSubjectAndDeletedFalseOrderByDateCreatedDesc(String ownerSubject);
 }

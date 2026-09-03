@@ -1,0 +1,20 @@
+{
+  "realm": "lilly",
+  "enabled": true,
+  "registrationAllowed": true,
+  "verifyEmail": true,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "clients": [{
+    "clientId": "lilly-web",
+    "enabled": true,
+    "publicClient": true,
+    "protocol": "openid-connect",
+    "redirectUris": ["http://localhost:3002/*"],
+    "webOrigins": ["http://localhost:3002"],
+    "standardFlowEnabled": true,
+    "directAccessGrantsEnabled": false
+  }],
+  "smtpServer": {"host": "mailpit", "port": "1025", "from": "no-reply@lillyrecorder.local", "fromDisplayName": "Lilly Meetings"}
+}

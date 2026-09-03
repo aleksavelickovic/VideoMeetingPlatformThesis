@@ -24,6 +24,8 @@ services:
       - S3_REGION=us-east-1
       - S3_PRESIGNED_URL_EXPIRY_HOURS=24
       - API_AUTH_JWT_SECRET=change-this-secret-change-this-secret
+      - KEYCLOAK_ISSUER_URI=http://localhost:8080/realms/lilly
+      - KEYCLOAK_JWK_SET_URI=http://keycloak:8080/realms/lilly/protocol/openid-connect/certs
       - MAIL_HOST=mailpit
       - MAIL_PORT=1025
       - MAIL_SMTP_AUTH=false
@@ -56,6 +58,9 @@ services:
       - VITE_API_URL=/api
       - VITE_LIVEKIT_URL=ws://localhost:7880
       - VITE_API_KEY=test123
+      - VITE_KEYCLOAK_URL=http://localhost:8080
+      - VITE_KEYCLOAK_REALM=lilly
+      - VITE_KEYCLOAK_CLIENT_ID=lilly-web
       - TZ=Europe/Belgrade
     depends_on:
       - api
@@ -174,6 +179,21 @@ services:
     ports:
       - "1025:1025"
       - "8025:8025"
+    networks:
+      - lilly-net
+    restart: unless-stopped
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.3
+    command: start-dev --http-port=8080 --import-realm
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-change-me}
+      KC_DB: dev-file
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./keycloak:/opt/keycloak/data/import:ro
     networks:
       - lilly-net
     restart: unless-stopped
