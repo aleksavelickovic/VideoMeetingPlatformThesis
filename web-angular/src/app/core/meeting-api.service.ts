@@ -31,4 +31,6 @@ export class MeetingApiService {
 
     getMyMeetings(): Observable<MeetingDto[]> { return this.http.get<MeetingDto[]>(`${this.baseUrl}/meetings/mine`) }
     updateMeeting(roomId: string, dto: unknown): Observable<MeetingDto> { return this.http.put<MeetingDto>(`${this.baseUrl}/meetings/${roomId}`, dto) }
+    getProfile(): Observable<{firstName: string; lastName: string; email: string}> { return this.http.get<{firstName: string; lastName: string; email: string}>(`${this.baseUrl}/auth/me`) }
+    updateProfile(dto: {firstName: string; lastName: string; email: string}): Observable<{firstName: string; lastName: string; email: string}> { return this.http.put<{firstName: string; lastName: string; email: string}>(`${this.baseUrl}/auth/me`, dto) }
 }

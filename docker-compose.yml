@@ -26,6 +26,8 @@ services:
       - API_AUTH_JWT_SECRET=change-this-secret-change-this-secret
       - KEYCLOAK_ISSUER_URI=http://localhost:8080/realms/lilly
       - KEYCLOAK_JWK_SET_URI=http://keycloak:8080/realms/lilly/protocol/openid-connect/certs
+      - KEYCLOAK_URL=http://keycloak:8080
+      - KEYCLOAK_REALM=lilly
       - MAIL_HOST=mailpit
       - MAIL_PORT=1025
       - MAIL_SMTP_AUTH=false
@@ -194,6 +196,7 @@ services:
       - "8080:8080"
     volumes:
       - ./keycloak:/opt/keycloak/data/import:ro
+      - ./keycloak/themes:/opt/keycloak/themes:ro
     networks:
       - lilly-net
     restart: unless-stopped

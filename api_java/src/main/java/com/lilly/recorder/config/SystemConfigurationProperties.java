@@ -16,6 +16,7 @@ public class SystemConfigurationProperties {
     private final RecordingDefaults recordingDefaults = new RecordingDefaults();
     private final Auth auth = new Auth();
     private final Mail mail = new Mail();
+    private final Keycloak keycloak = new Keycloak();
 
     public String getFrontendUrl() {
         return frontendUrl;
@@ -58,6 +59,16 @@ public class SystemConfigurationProperties {
     }
 
     public Mail getMail() { return mail; }
+    public Keycloak getKeycloak() { return keycloak; }
+
+    public static class Keycloak {
+        private String url = "http://localhost:8080";
+        private String realm = "lilly";
+        public String getUrl() { return url; }
+        public void setUrl(String url) { this.url = url; }
+        public String getRealm() { return realm; }
+        public void setRealm(String realm) { this.realm = realm; }
+    }
 
     public static class Mail {
         private boolean enabled = true;
