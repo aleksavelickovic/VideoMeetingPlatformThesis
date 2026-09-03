@@ -18,6 +18,7 @@
     "standardFlowEnabled": true,
     "directAccessGrantsEnabled": false,
     "defaultClientScopes": ["web-origins", "acr", "profile", "roles", "email"],
+    "attributes": {"pkce.code.challenge.method": "S256"},
     "protocolMappers": [{
       "name": "Account API audience",
       "protocol": "openid-connect",

@@ -2,6 +2,12 @@ import {Injectable, signal} from '@angular/core'
 import {RuntimeConfigService} from './runtime-config.service'
 import {ThemeService} from './theme.service'
 
+interface OAuthTransaction {
+    state: string
+    codeVerifier: string
+    redirectUri: string
+}
+
 @Injectable({providedIn: 'root'})
 export class AuthService {
     private readonly config: RuntimeConfigService
@@ -20,12 +26,12 @@ export class AuthService {
 
     login(): void {
         this.clearLocalSession()
-        this.redirectToKeycloak()
+        void this.redirectToKeycloak()
     }
 
     register(): void {
         this.clearLocalSession()
-        this.redirectToKeycloak('register')
+        void this.redirectToKeycloak('register')
     }
 
     logout(): void {
@@ -50,17 +56,23 @@ export class AuthService {
         const code = query.get('code')
         if (code) {
             try {
+                const transaction = this.readOAuthTransaction()
+                if (!transaction || query.get('state') !== transaction.state) throw new Error('Invalid OAuth state')
                 const response = await fetch(`${this.config.keycloakUrl}/realms/${encodeURIComponent(this.config.keycloakRealm)}/protocol/openid-connect/token`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                    body: new URLSearchParams({grant_type: 'authorization_code', client_id: this.config.keycloakClientId, code, redirect_uri: window.location.origin})
+                    body: new URLSearchParams({grant_type: 'authorization_code', client_id: this.config.keycloakClientId, code, redirect_uri: transaction.redirectUri, code_verifier: transaction.codeVerifier})
                 })
                 if (!response.ok) throw new Error('Keycloak token exchange failed')
                 const tokens = await response.json() as {access_token: string; id_token?: string}
                 localStorage.setItem('sessions_access_token', tokens.access_token)
                 if (tokens.id_token) localStorage.setItem('sessions_id_token', tokens.id_token)
+            } catch {
+                this.clearLocalSession()
+            } finally {
+                sessionStorage.removeItem('sessions_oauth_transaction')
                 window.history.replaceState({}, document.title, window.location.pathname)
-            } catch { localStorage.removeItem('sessions_access_token') }
+            }
         }
         const token = this.token()
         this.loggedIn.set(!!token)
@@ -68,14 +80,49 @@ export class AuthService {
         this.ready.set(true)
     }
 
-    private redirectToKeycloak(action?: string): void {
+    private async redirectToKeycloak(action?: string): Promise<void> {
         const endpoint = `${this.config.keycloakUrl}/realms/${encodeURIComponent(this.config.keycloakRealm)}/protocol/openid-connect/auth`
-        const params = new URLSearchParams({client_id: this.config.keycloakClientId, redirect_uri: window.location.origin, response_type: 'code', scope: 'openid profile email', prompt: 'login', max_age: '0', theme: this.theme.isDark() ? 'dark' : 'light'})
+        const redirectUri = window.location.origin
+        const state = this.randomUrlValue(32)
+        const codeVerifier = this.randomUrlValue(64)
+        const codeChallenge = await this.createCodeChallenge(codeVerifier)
+        const transaction: OAuthTransaction = {state, codeVerifier, redirectUri}
+        sessionStorage.setItem('sessions_oauth_transaction', JSON.stringify(transaction))
+        const params = new URLSearchParams({client_id: this.config.keycloakClientId, redirect_uri: redirectUri, response_type: 'code', scope: 'openid profile email', state, code_challenge: codeChallenge, code_challenge_method: 'S256', prompt: 'login', max_age: '0', theme: this.theme.isDark() ? 'dark' : 'light'})
         if (action) {
             params.set('kc_action', action)
             params.set('action', action)
         }
         window.location.assign(`${endpoint}?${params}`)
+    }
+
+    private readOAuthTransaction(): OAuthTransaction | undefined {
+        const value = sessionStorage.getItem('sessions_oauth_transaction')
+        if (!value) return undefined
+        try {
+            const transaction = JSON.parse(value) as OAuthTransaction
+            if (!transaction.state || !transaction.codeVerifier || !transaction.redirectUri) return undefined
+            return transaction
+        } catch {
+            return undefined
+        }
+    }
+
+    private randomUrlValue(size: number): string {
+        const bytes = new Uint8Array(size)
+        crypto.getRandomValues(bytes)
+        return this.toBase64Url(bytes)
+    }
+
+    private async createCodeChallenge(value: string): Promise<string> {
+        const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value))
+        return this.toBase64Url(new Uint8Array(digest))
+    }
+
+    private toBase64Url(value: Uint8Array): string {
+        let binary = ''
+        value.forEach(byte => binary += String.fromCharCode(byte))
+        return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
     }
 
     private clearLocalSession(): void {
