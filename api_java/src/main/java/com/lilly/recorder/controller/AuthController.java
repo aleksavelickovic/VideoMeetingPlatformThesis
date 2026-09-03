@@ -21,11 +21,9 @@ public class AuthController {
     @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<JsonNode> profile(JwtAuthenticationToken authentication) {
-        ObjectNode profile = objectMapper.createObjectNode();
-        profile.put("firstName", authentication.getToken().getClaimAsString("given_name"));
-        profile.put("lastName", authentication.getToken().getClaimAsString("family_name"));
-        profile.put("email", authentication.getToken().getClaimAsString("email"));
-        return ResponseEntity.ok(profile);
+        return ResponseEntity.ok(accountService.getProfile(
+                authentication.getToken().getSubject(),
+                authentication.getToken().getClaimAsString("email")));
     }
 
     @PutMapping("/me")
