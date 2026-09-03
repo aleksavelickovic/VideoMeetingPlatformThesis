@@ -6,6 +6,7 @@
   "loginWithEmailAllowed": true,
   "duplicateEmailsAllowed": false,
   "resetPasswordAllowed": true,
+  "loginTheme": "sessions",
   "clients": [{
     "clientId": "lilly-web",
     "enabled": true,

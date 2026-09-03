@@ -54,6 +54,9 @@ logging:
     org.hibernate.orm.jdbc.bind: TRACE
 
 system-configuration:
+  keycloak:
+    url: ${KEYCLOAK_URL:http://localhost:8080}
+    realm: ${KEYCLOAK_REALM:lilly}
   mail:
     enabled: ${MAIL_ENABLED:true}
     from: ${MAIL_FROM:no-reply@lillyrecorder.local}

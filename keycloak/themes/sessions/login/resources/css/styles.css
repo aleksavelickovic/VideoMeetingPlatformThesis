@@ -1,0 +1,170 @@
+:root {
+    --sessions-page: #f5f7fb;
+    --sessions-panel: #ffffff;
+    --sessions-field: #f4f8ff;
+    --sessions-line: #cbd9eb;
+    --sessions-text: #172033;
+    --sessions-muted: #64748b;
+    --sessions-brand: #2563eb;
+}
+
+html, body { min-height: 100%; }
+body {
+    margin: 0;
+    background: var(--sessions-page) !important;
+    color: var(--sessions-text) !important;
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+    display: flex;
+    min-height: 100vh;
+    align-items: center;
+    justify-content: center;
+}
+
+.sessions-dark {
+    --sessions-page: #0f172a;
+    --sessions-panel: #172338;
+    --sessions-field: #111c2f;
+    --sessions-line: #30415d;
+    --sessions-text: #e7eefb;
+    --sessions-muted: #9aacca;
+    --sessions-brand: #6ea0ff;
+}
+
+.pf-v5-c-login, .login-pf-page, .login-pf body {
+    background: var(--sessions-page) !important;
+}
+
+.pf-v5-c-login, .login-pf-page {
+    width: 100% !important;
+    min-height: 100vh !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 32px 20px !important;
+}
+
+.pf-v5-c-login__container {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+}
+
+.pf-v5-c-login__container, .pf-v5-c-login__main, .login-pf-page .container,
+.login-pf-page .card-pf {
+    width: min(100%, 460px) !important;
+    max-width: 460px !important;
+    margin: 0 auto !important;
+}
+
+#sessions-brand {
+    display: block !important;
+    width: min(100%, 460px) !important;
+    margin: 0 auto 18px !important;
+    color: var(--sessions-text) !important;
+    font-size: 30px !important;
+    font-weight: 800 !important;
+    letter-spacing: .14em !important;
+    line-height: 1 !important;
+    text-align: center !important;
+}
+
+.pf-v5-c-login__main, .card-pf, .login-pf-page .card-pf {
+    background: var(--sessions-panel) !important;
+    border: 1px solid var(--sessions-line) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 22px 60px rgba(30, 64, 120, .18), 0 4px 14px rgba(30, 64, 120, .08) !important;
+    padding: 32px !important;
+}
+
+.pf-v5-c-login__main-header, .pf-v5-c-login__main-header h1,
+.login-pf-page .card-pf h1, #kc-page-title {
+    width: 100% !important;
+    text-align: center !important;
+}
+
+.sessions-required-fields {
+    display: block !important;
+    position: static !important;
+    clear: both !important;
+    order: 20 !important;
+    width: 100% !important;
+    margin-top: 16px !important;
+    color: var(--sessions-muted) !important;
+    text-align: center !important;
+    font-size: 12px !important;
+}
+
+#kc-page-title, .pf-v5-c-login__main-header h1, .login-pf-page .card-pf h1 {
+    display: block !important;
+    width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    text-align: center !important;
+}
+
+.pf-v5-c-login__main-header, .login-pf-page .card-pf h1,
+.pf-v5-c-login__main-header h1, .login-pf-page h1 {
+    color: var(--sessions-text) !important;
+}
+
+label, .pf-v5-c-form__label, .pf-v5-c-login__main-footer-links,
+.login-pf-page .subtitle, .login-pf-page #kc-info { color: var(--sessions-muted) !important; }
+
+input, select, textarea, .pf-v5-c-form-control {
+    background: var(--sessions-field) !important;
+    border: 1px solid var(--sessions-line) !important;
+    border-radius: 8px !important;
+    color: var(--sessions-text) !important;
+    box-shadow: none !important;
+}
+
+input:focus, select:focus, textarea:focus, .pf-v5-c-form-control:focus {
+    border-color: var(--sessions-brand) !important;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--sessions-brand) 20%, transparent) !important;
+}
+
+button, input[type="submit"], .pf-v5-c-button.pf-m-primary,
+.btn-primary, #kc-login, #kc-register {
+    background: var(--sessions-brand) !important;
+    border: 0 !important;
+    border-radius: 8px !important;
+    color: #fff !important;
+    font-weight: 600 !important;
+}
+
+a, .pf-v5-c-login__main-footer-links a, #kc-form-options a { color: var(--sessions-brand) !important; }
+.sessions-back-link {
+    display: block !important;
+    width: 100% !important;
+    margin-top: 18px !important;
+    padding: 10px 14px !important;
+    border: 1px solid var(--sessions-line) !important;
+    border-radius: 8px !important;
+    background: var(--sessions-field) !important;
+    color: var(--sessions-text) !important;
+    text-align: center !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    transition: border-color .2s ease, background-color .2s ease, transform .2s ease !important;
+}
+.sessions-back-link:hover {
+    border-color: var(--sessions-brand) !important;
+    background: var(--sessions-panel) !important;
+    color: var(--sessions-brand) !important;
+    transform: translateY(-1px);
+}
+.pf-v5-c-brand, #kc-header-wrapper {
+    color: #ffffff !important;
+    display: inline-block !important;
+    background: var(--sessions-brand) !important;
+    border-radius: 8px !important;
+    padding: 7px 14px !important;
+    font-size: 30px !important;
+    font-weight: 800 !important;
+    letter-spacing: .08em !important;
+    text-transform: uppercase !important;
+}
+.sessions-dark .pf-v5-c-login__main-header, .sessions-dark .login-pf-page .card-pf { color: var(--sessions-text) !important; }

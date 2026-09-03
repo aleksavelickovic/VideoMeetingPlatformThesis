@@ -1,15 +1,18 @@
 import {Injectable, signal} from '@angular/core'
 import {RuntimeConfigService} from './runtime-config.service'
+import {ThemeService} from './theme.service'
 
 @Injectable({providedIn: 'root'})
 export class AuthService {
     private readonly config: RuntimeConfigService
+    private readonly theme: ThemeService
     readonly ready = signal(false)
     readonly loggedIn = signal(false)
     readonly profile = signal<{firstName: string; lastName: string; email: string}>({firstName: '', lastName: '', email: ''})
 
-    constructor(config: RuntimeConfigService) {
+    constructor(config: RuntimeConfigService, theme: ThemeService) {
         this.config = config
+        this.theme = theme
         void this.initialize()
     }
 
@@ -67,7 +70,7 @@ export class AuthService {
 
     private redirectToKeycloak(action?: string): void {
         const endpoint = `${this.config.keycloakUrl}/realms/${encodeURIComponent(this.config.keycloakRealm)}/protocol/openid-connect/auth`
-        const params = new URLSearchParams({client_id: this.config.keycloakClientId, redirect_uri: window.location.origin, response_type: 'code', scope: 'openid', prompt: 'login', max_age: '0'})
+        const params = new URLSearchParams({client_id: this.config.keycloakClientId, redirect_uri: window.location.origin, response_type: 'code', scope: 'openid', prompt: 'login', max_age: '0', theme: this.theme.isDark() ? 'dark' : 'light'})
         if (action) {
             params.set('kc_action', action)
             params.set('action', action)
