@@ -70,7 +70,7 @@ export class AuthService {
 
     private redirectToKeycloak(action?: string): void {
         const endpoint = `${this.config.keycloakUrl}/realms/${encodeURIComponent(this.config.keycloakRealm)}/protocol/openid-connect/auth`
-        const params = new URLSearchParams({client_id: this.config.keycloakClientId, redirect_uri: window.location.origin, response_type: 'code', scope: 'openid', prompt: 'login', max_age: '0', theme: this.theme.isDark() ? 'dark' : 'light'})
+        const params = new URLSearchParams({client_id: this.config.keycloakClientId, redirect_uri: window.location.origin, response_type: 'code', scope: 'openid profile email', prompt: 'login', max_age: '0', theme: this.theme.isDark() ? 'dark' : 'light'})
         if (action) {
             params.set('kc_action', action)
             params.set('action', action)

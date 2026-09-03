@@ -57,6 +57,8 @@ system-configuration:
   keycloak:
     url: ${KEYCLOAK_URL:http://localhost:8080}
     realm: ${KEYCLOAK_REALM:lilly}
+    admin-username: ${KEYCLOAK_ADMIN_USERNAME:}
+    admin-password: ${KEYCLOAK_ADMIN_PASSWORD:}
   mail:
     enabled: ${MAIL_ENABLED:true}
     from: ${MAIL_FROM:no-reply@lillyrecorder.local}
