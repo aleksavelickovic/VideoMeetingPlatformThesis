@@ -4,8 +4,8 @@ Invintation text pored summary-a*
 Connection deo izbaciti*
 Meeting decription (summary) umesto additional medatadata u RichText umesto JSON*
 Editovanje sastanka samo za ulogovanog korisnika (ako nije poceo ili se niko nije pridruzio 15min ranije)
-Edit lozinke preko mail-a, NE otvaranjem Keycloack konzole!
+Edit lozinke preko mail-a, NE otvaranjem Keycloack konzole!*
 Additional metadata se dodaje u sastanku (izbaciti iz kreiranja sastanka), omoguciti hostu da tokom sastanka ima popup za beleske. po zavrsetku se te beleske salju sa summary svima na mejl*
 Promeni app i IDE u light theme za screenshots*
 U invitation mejlu koji stize hostu, naglasiti "you have been invited to join this meeting AS A HOST"
-Testirati svu funkcionalnost!
+Testirati sve funkcionalnosti!
