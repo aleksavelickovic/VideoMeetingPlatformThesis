@@ -16,7 +16,26 @@
     "redirectUris": ["http://localhost:3002/*"],
     "webOrigins": ["http://localhost:3002"],
     "standardFlowEnabled": true,
-    "directAccessGrantsEnabled": false
+    "directAccessGrantsEnabled": false,
+    "defaultClientScopes": ["web-origins", "acr", "profile", "roles", "email"],
+    "protocolMappers": [{
+      "name": "Account API audience",
+      "protocol": "openid-connect",
+      "protocolMapper": "oidc-audience-mapper",
+      "config": {
+        "included.client.audience": "account",
+        "id.token.claim": "false",
+        "access.token.claim": "true",
+        "userinfo.token.claim": "false"
+      }
+    }]
   }],
-  "smtpServer": {"host": "mailpit", "port": "1025", "from": "no-reply@lillyrecorder.local", "fromDisplayName": "Lilly Meetings"}
+  "smtpServer": {"host": "mailpit", "port": "1025", "from": "no-reply@lillyrecorder.local", "fromDisplayName": "Lilly Meetings"},
+  "roles": {
+    "realm": [{
+      "name": "default-roles-lilly",
+      "composite": true,
+      "composites": {"client": {"account": ["manage-account"]}}
+    }]
+  }
 }
