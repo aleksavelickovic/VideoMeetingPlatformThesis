@@ -9,3 +9,4 @@ Additional metadata se dodaje u sastanku (izbaciti iz kreiranja sastanka), omogu
 Promeni app i IDE u light theme za screenshots*
 U invitation mejlu koji stize hostu, naglasiti "you have been invited to join this meeting AS A HOST"
 Testirati sve funkcionalnosti!
+Landing page

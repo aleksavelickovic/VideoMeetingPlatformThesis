@@ -16,12 +16,12 @@ import {SessionsHeaderComponent} from '../shared/sessions-header.component'
             <app-sessions-header [title]="meetingTitle()"/>
             <main class="mx-auto flex min-h-[calc(100vh-51px)] w-full max-w-[1360px] items-center px-5 py-8">
                 <div class="grid w-full items-stretch gap-8 md:grid-cols-[minmax(0,1fr)_374px]">
-                    <section class="h-full rounded-2xl border border-blue-100 bg-white/70 p-2 shadow-preview ring-1 ring-white/80 md:flex md:justify-center">
+                    <section class="relative h-full min-h-[320px] rounded-2xl border border-blue-100 bg-white/70 p-2 shadow-preview ring-1 ring-white/80">
                         <div
-                                class="relative aspect-video h-full overflow-hidden rounded-xl border border-blue-200 bg-slate-200 shadow-lg shadow-blue-200/60 md:inline-block md:w-auto">
+                                class="absolute inset-2 overflow-hidden rounded-xl border border-blue-200 bg-slate-200 shadow-lg shadow-blue-200/60">
                             <video #preview autoplay muted playsinline class="size-full object-cover"
-                                   [class.opacity-0]="!stream"></video>
-                            <div class="absolute inset-0 grid place-items-center" [class.hidden]="stream"><span
+                                   [class.opacity-0]="!previewStream()"></video>
+                            <div class="absolute inset-0 grid place-items-center" [class.hidden]="previewStream()"><span
                                     class="grid size-20 place-items-center rounded-full border-2 border-brand/60 bg-brand/10 text-2xl font-semibold text-blue-700">{{ initials() }}</span><span
                                     class="absolute bottom-20 text-xs text-slate-500">Camera preview</span></div>
                             <span
@@ -111,7 +111,8 @@ export class PreJoinPageComponent implements AfterViewInit, OnDestroy {
     readonly joining = signal(false)
     readonly cameraEnabled = signal(true)
     readonly microphoneEnabled = signal(true)
-    stream: MediaStream | null = null
+    readonly previewStream = signal<MediaStream | null>(null)
+    private previewRequest = 0
     protected readonly Camera = Camera;
     protected readonly CameraOff = CameraOff;
     protected readonly ChevronDown = ChevronDown;
@@ -129,20 +130,47 @@ export class PreJoinPageComponent implements AfterViewInit, OnDestroy {
     }
 
     async updatePreview(): Promise<void> {
-        this.stream?.getTracks().forEach(track => track.stop());
-        this.stream = null
+        const request = ++this.previewRequest
+        this.previewStream()?.getTracks().forEach(track => track.stop());
+        this.previewStream.set(null)
         if (!this.cameraEnabled() || !this.cameraId()) {
-            if (this.preview) this.preview.nativeElement.srcObject = null
+            this.clearPreview()
             return
         }
         try {
-            this.stream = await navigator.mediaDevices.getUserMedia({
+            const stream = await navigator.mediaDevices.getUserMedia({
                 video: {deviceId: {exact: this.cameraId()}},
                 audio: false
             });
-            if (this.preview) this.preview.nativeElement.srcObject = this.stream
+            if (request !== this.previewRequest || !this.cameraEnabled()) {
+                stream.getTracks().forEach(track => track.stop())
+                return
+            }
+            this.previewStream.set(stream)
+            await this.attachPreview(stream)
         } catch {
-            this.stream = null
+            if (request !== this.previewRequest) return
+            this.previewStream.set(null)
+            this.clearPreview()
+        }
+    }
+
+    private clearPreview(): void {
+        if (!this.preview) return
+        const video = this.preview.nativeElement
+        video.pause()
+        video.srcObject = null
+        video.load()
+    }
+
+    private async attachPreview(stream: MediaStream): Promise<void> {
+        if (!this.preview) return
+        const video = this.preview.nativeElement
+        video.srcObject = stream
+        try {
+            await video.play()
+        } catch {
+            if (video.srcObject === stream) this.previewStream.set(null)
         }
     }
 
@@ -188,6 +216,8 @@ export class PreJoinPageComponent implements AfterViewInit, OnDestroy {
     }
 
     ngOnDestroy(): void {
-        this.stream?.getTracks().forEach(track => track.stop())
+        this.previewRequest++
+        this.clearPreview()
+        this.previewStream()?.getTracks().forEach(track => track.stop())
     }
 }
