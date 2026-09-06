@@ -15,6 +15,7 @@ function isProtectedRequest(request: {method: string; url: string}, apiUrl: stri
     const apiPath = new URL(apiUrl, window.location.origin).pathname.replace(/\/$/, '')
     const path = new URL(request.url, window.location.origin).pathname.replace(new RegExp(`^${apiPath}`), '')
     if (path.startsWith('/auth/')) return true
+    if (request.method === 'POST' && path === '/meetings') return true
     if (path === '/meetings/mine') return true
     return request.method === 'PUT' && /^\/meetings\/[^/]+$/.test(path)
 }

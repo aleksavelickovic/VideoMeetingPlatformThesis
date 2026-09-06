@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.PutMapping;
 
 import java.util.UUID;
@@ -38,25 +39,37 @@ public class MeetingController {
     }
 
     @PostMapping
-    public ResponseEntity<CreateMeetingResponse> create(@Valid @RequestBody CreateMeetingDto dto) {
-        Authentication authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
-        String owner = authentication != null && authentication.isAuthenticated() && !"anonymousUser".equals(authentication.getName()) ? authentication.getName() : null;
-        Meeting meeting = meetingService.create(dto, owner);
+    public ResponseEntity<CreateMeetingResponse> create(@Valid @RequestBody CreateMeetingDto dto, Authentication authentication) {
+        Meeting meeting = meetingService.create(dto, authenticatedSubject(authentication));
         return ResponseEntity.ok(meetingMapper.toCreateResponse(meeting));
     }
 
     @GetMapping("/mine")
     public ResponseEntity<java.util.List<MeetingDto>> getMine(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) return ResponseEntity.status(401).build();
-        return ResponseEntity.ok(meetingService.getMyMeetings(authentication.getName()).stream()
+        return ResponseEntity.ok(meetingService.getMyMeetings(authenticatedSubject(authentication)).stream()
                 .map(meeting -> meetingMapper.toDto(meeting, java.util.Map.of(), meetingService.getMeetingPresignedUrl(meeting))).toList());
     }
 
     @PutMapping("/{roomId}")
     public ResponseEntity<MeetingDto> update(@PathVariable UUID roomId, @Valid @RequestBody UpdateMeetingDto dto, Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) return ResponseEntity.status(401).build();
-        Meeting meeting = meetingService.update(roomId, dto, authentication.getName());
+        Meeting meeting = meetingService.update(roomId, dto, authenticatedSubject(authentication));
         return ResponseEntity.ok(meetingMapper.toDto(meeting, java.util.Map.of(), meetingService.getMeetingPresignedUrl(meeting)));
+    }
+
+    private String authenticatedSubject(Authentication authentication) {
+        if (authentication instanceof JwtAuthenticationToken jwtAuthentication) {
+            String subject = jwtAuthentication.getToken().getSubject();
+            if (subject != null && !subject.isBlank()) return subject;
+            String email = jwtAuthentication.getToken().getClaimAsString("email");
+            if (email != null && !email.isBlank()) return email;
+            String preferredUsername = jwtAuthentication.getToken().getClaimAsString("preferred_username");
+            if (preferredUsername != null && !preferredUsername.isBlank()) return preferredUsername;
+        }
+        return authentication != null && authentication.isAuthenticated() && !"anonymousUser".equals(authentication.getName())
+                ? authentication.getName()
+                : null;
     }
 
     @GetMapping

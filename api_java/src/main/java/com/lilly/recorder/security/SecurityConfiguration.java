@@ -41,7 +41,7 @@ public class SecurityConfiguration {
     }
 
     private String resolveBearerToken(HttpServletRequest request) {
-        if (isPublicMeetingRequest(request)) return null;
+        if (isPublicMeetingRequest(request) && request.getHeader("Authorization") == null) return null;
         return defaultBearerTokenResolver.resolve(request);
     }
 

@@ -1,0 +1,28 @@
+  1. Pokreni aplikaciju:
+
+     docker compose up --build
+
+  2. Otvori Keycloak Admin Console:
+
+     http://localhost:8080/admin/
+
+  3. Izaberi realm lilly.
+  4. Otvori Identity Providers → Add provider → Google.
+  5. Kopiraj Redirect URI:
+
+     http://localhost:8080/realms/lilly/broker/google/endpoint
+
+  6. U Google Cloud Console kreiraj OAuth client tipa Web application.
+  7. Kao Authorized redirect URI unesi prethodnu adresu.
+  8. Client ID i Client Secret iz Google Console nalepi u Keycloak Google provider.
+  9. U Keycloak-u uključi:
+      - Trust Email
+      - Enabled
+
+     Ostavi:
+      - Store Tokens: isključeno
+      - Account Linking Only: isključeno
+      - First Login Flow: first broker login
+      - Sync Mode: Import
+
+  Google dugme se neće prikazati dok Google provider ne bude ručno sačuvan u Keycloak-u.
