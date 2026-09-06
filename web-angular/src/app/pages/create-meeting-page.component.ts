@@ -1,18 +1,12 @@
-import {Component, ElementRef, effect, inject, signal, ViewChild} from '@angular/core'
+import {Component, effect, inject, signal} from '@angular/core'
 import {FormArray, FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms'
 import {Router} from '@angular/router'
 import {finalize} from 'rxjs'
 import {
-    Bold,
-    ChevronDown,
-    Italic,
-    List,
-    ListOrdered,
     LucideAngularModule,
     Monitor,
     Plus,
     Trash2,
-    Underline,
     UserRound,
     Video
 } from 'lucide-angular'
@@ -22,6 +16,7 @@ import {CreateMeetingDto, ParticipantRole} from '../models/meeting.models'
 import {DateTimePickerComponent} from '../shared/date-time-picker.component'
 import {SessionsHeaderComponent} from '../shared/sessions-header.component'
 import {AuthService} from '../core/auth.service'
+import {RichTextEditorComponent} from '../shared/rich-text-editor.component'
 
 const presets = [{label: 'HD (1280 × 720)', width: 1280, height: 720}, {
     label: 'Full HD (1920 × 1080)',
@@ -31,7 +26,7 @@ const presets = [{label: 'HD (1280 × 720)', width: 1280, height: 720}, {
 
 @Component({
     selector: 'app-create-meeting-page',
-    imports: [ReactiveFormsModule, DateTimePickerComponent, SessionsHeaderComponent, LucideAngularModule],
+    imports: [ReactiveFormsModule, DateTimePickerComponent, SessionsHeaderComponent, LucideAngularModule, RichTextEditorComponent],
     template: `
         <div class="min-h-screen bg-page">
             <app-sessions-header/>
@@ -58,53 +53,7 @@ const presets = [{label: 'HD (1280 × 720)', width: 1280, height: 720}, {
                         <h2 class="section-label border-b border-line pb-3">Additional Information</h2>
                         <div class="mt-4">
                             <span class="field-label">Description (optional)</span>
-                            <div class="overflow-hidden rounded-lg border border-line bg-field shadow-sm focus-within:border-brand focus-within:bg-white focus-within:ring-2 focus-within:ring-brand/20">
-                                <div class="flex flex-wrap items-center gap-1 border-b border-line bg-blue-50/70 px-2 py-1.5"
-                                     role="toolbar" aria-label="Description formatting">
-                                    <button type="button" title="Bold (Ctrl/Cmd+B)" aria-label="Bold"
-                                            (mousedown)="formatMetadata($event, 'bold')"
-                                            [class.bg-blue-100]="metadataFormatting().bold"
-                                            class="grid size-8 place-items-center rounded text-slate-600 hover:bg-blue-50">
-                                        <lucide-icon
-                                                [img]="Bold" class="size-4"/>
-                                    </button>
-                                    <button type="button" title="Italic (Ctrl/Cmd+I)" aria-label="Italic"
-                                            (mousedown)="formatMetadata($event, 'italic')"
-                                            [class.bg-blue-100]="metadataFormatting().italic"
-                                            class="grid size-8 place-items-center rounded text-slate-600 hover:bg-blue-50">
-                                        <lucide-icon
-                                                [img]="Italic" class="size-4"/>
-                                    </button>
-                                    <button type="button" title="Underline (Ctrl/Cmd+U)" aria-label="Underline"
-                                            (mousedown)="formatMetadata($event, 'underline')"
-                                            [class.bg-blue-100]="metadataFormatting().underline"
-                                            class="grid size-8 place-items-center rounded text-slate-600 hover:bg-blue-50">
-                                        <lucide-icon
-                                                [img]="Underline" class="size-4"/>
-                                    </button>
-                                    <span class="mx-1 h-5 w-px bg-line"></span>
-                                    <button type="button" title="Bulleted list" aria-label="Bulleted list"
-                                            (mousedown)="formatMetadata($event, 'insertUnorderedList')"
-                                            class="grid size-8 place-items-center rounded text-slate-600 hover:bg-blue-50">
-                                        <lucide-icon
-                                                [img]="List" class="size-4"/>
-                                    </button>
-                                    <button type="button" title="Numbered list" aria-label="Numbered list"
-                                            (mousedown)="formatMetadata($event, 'insertOrderedList')"
-                                            class="grid size-8 place-items-center rounded text-slate-600 hover:bg-blue-50">
-                                        <lucide-icon
-                                                [img]="ListOrdered" class="size-4"/>
-                                    </button>
-                                </div>
-                                <div #metadataEditor contenteditable="true" role="textbox" aria-multiline="true"
-                                     spellcheck="true"
-                                     data-placeholder="Provide a short description of the meeting"
-                                     class="meeting-editor min-h-[112px] max-h-56 overflow-y-auto px-3 py-2.5 text-sm text-slate-900 outline-none"
-                                     (input)="onMetadataInput($event)"
-                                     (keyup)="refreshMetadataFormatting()"
-                                     (mouseup)="refreshMetadataFormatting()"
-                                     (paste)="pasteMetadataAsText($event)"></div>
-                            </div>
+                            <app-rich-text-editor formControlName="metadata"/>
                             <!--                            <p class="mt-1.5 text-xs text-muted">Use the toolbar or keyboard shortcuts to format the description.</p>-->
                         </div>
                     </section>
@@ -200,10 +149,7 @@ export class CreateMeetingPageComponent {
     private readonly auth = inject(AuthService)
     readonly loading = signal(false);
     readonly error = signal('');
-    readonly metadataEmpty = signal(true);
-    readonly metadataFormatting = signal({bold: false, italic: false, underline: false});
     readonly focusedParticipantIndex = signal<number | null>(null);
-    @ViewChild('metadataEditor') private metadataEditor?: ElementRef<HTMLElement>;
     readonly presets = presets
     readonly form = this.fb.group({
         title: ['', [Validators.required, Validators.maxLength(200)]],
@@ -218,11 +164,6 @@ export class CreateMeetingPageComponent {
     protected readonly Plus = Plus;
     protected readonly Trash2 = Trash2;
     protected readonly Monitor = Monitor
-    protected readonly Bold = Bold
-    protected readonly Italic = Italic
-    protected readonly Underline = Underline
-    protected readonly List = List
-    protected readonly ListOrdered = ListOrdered
 
     constructor() {
         effect(() => {
@@ -278,42 +219,6 @@ export class CreateMeetingPageComponent {
         this.form.controls.recordingHeight.setValue(height)
     }
 
-    formatMetadata(event: MouseEvent, command: string): void {
-        event.preventDefault();
-        document.execCommand(command, false);
-        this.syncMetadata(this.metadataEditor?.nativeElement);
-        this.refreshMetadataFormatting()
-    }
-
-    onMetadataInput(event: Event): void {
-        const editor = event.target as HTMLElement;
-        this.syncMetadata(editor);
-        this.refreshMetadataFormatting()
-    }
-
-    private syncMetadata(editor: HTMLElement | undefined): void {
-        if (!editor) return;
-        const isEmpty = !editor.textContent?.trim();
-        this.metadataEmpty.set(isEmpty);
-        this.form.controls.metadata.setValue(isEmpty ? '' : editor.innerHTML);
-    }
-
-    pasteMetadataAsText(event: ClipboardEvent): void {
-        event.preventDefault();
-        const text = event.clipboardData?.getData('text/plain') ?? '';
-        document.execCommand('insertText', false, text);
-        this.syncMetadata(this.metadataEditor?.nativeElement);
-        this.refreshMetadataFormatting()
-    }
-
-    refreshMetadataFormatting(): void {
-        this.metadataFormatting.set({
-            bold: document.queryCommandState('bold'),
-            italic: document.queryCommandState('italic'),
-            underline: document.queryCommandState('underline')
-        })
-    }
-
     submit(): void {
         this.error.set('');
         this.form.markAllAsTouched();
@@ -334,7 +239,7 @@ export class CreateMeetingPageComponent {
             this.error.set('Scheduled date and time must be in the future.');
             return
         }
-        const rawMetadata = this.metadataEmpty() ? '' : (data.metadata?.trim() ?? '');
+        const rawMetadata = data.metadata?.trim() ?? '';
         const dto: CreateMeetingDto = {
             title: data.title?.trim() ?? '',
             scheduledAt: scheduledAt.toISOString(),

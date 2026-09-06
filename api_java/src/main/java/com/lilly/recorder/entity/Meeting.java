@@ -34,6 +34,7 @@ public class Meeting extends BaseEntity {
     private MeetingStatus status = MeetingStatus.SCHEDULED;
 
     private Instant scheduledAt;
+    private Instant reminderSentAt;
     private int durationLimitMinutes = 120;
     private boolean recordingEnabled = true;
     private int recordingWidth = 1280;
@@ -96,6 +97,14 @@ public class Meeting extends BaseEntity {
 
     public void setScheduledAt(Instant scheduledAt) {
         this.scheduledAt = scheduledAt;
+    }
+
+    public Instant getReminderSentAt() {
+        return reminderSentAt;
+    }
+
+    public void setReminderSentAt(Instant reminderSentAt) {
+        this.reminderSentAt = reminderSentAt;
     }
 
     public int getDurationLimitMinutes() {

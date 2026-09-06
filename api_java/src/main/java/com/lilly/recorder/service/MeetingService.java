@@ -160,9 +160,14 @@ public class MeetingService {
                 || !dto.getScheduledAt().isAfter(Instant.now().plus(15, ChronoUnit.MINUTES))) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Meeting can only be edited more than 15 minutes before it starts");
         }
+        String previousTitle = meeting.getTitle();
         java.util.List<String> changes = new ArrayList<>();
         if (!java.util.Objects.equals(meeting.getTitle(), dto.getTitle())) { changes.add("title"); meeting.setTitle(dto.getTitle()); }
-        if (!java.util.Objects.equals(meeting.getScheduledAt(), dto.getScheduledAt())) { changes.add("scheduled time"); meeting.setScheduledAt(dto.getScheduledAt()); }
+        if (!java.util.Objects.equals(meeting.getScheduledAt(), dto.getScheduledAt())) {
+            changes.add("scheduled time");
+            meeting.setScheduledAt(dto.getScheduledAt());
+            meeting.setReminderSentAt(null);
+        }
         if (meeting.getDurationLimitMinutes() != dto.getDurationLimitMinutes()) { changes.add("duration"); meeting.setDurationLimitMinutes(dto.getDurationLimitMinutes()); }
         if (meeting.isRecordingEnabled() != dto.isRecordingEnabled()) { changes.add("recording"); meeting.setRecordingEnabled(dto.isRecordingEnabled()); }
         if (meeting.getRecordingWidth() != dto.getRecordingWidth() || meeting.getRecordingHeight() != dto.getRecordingHeight()) { changes.add("recording resolution"); meeting.setRecordingWidth(dto.getRecordingWidth()); meeting.setRecordingHeight(dto.getRecordingHeight()); }
@@ -174,7 +179,7 @@ public class MeetingService {
         if (saved.getStatus() == MeetingStatus.IN_PROGRESS) {
             scheduleMeetingEnd(saved);
         }
-        if (!changes.isEmpty()) meetingEmailService.sendMeetingUpdate(saved, changes);
+        if (!changes.isEmpty()) meetingEmailService.sendMeetingUpdate(saved, previousTitle, changes);
         return saved;
     }
 
@@ -293,6 +298,22 @@ public class MeetingService {
         Long meetingId = meeting.getId();
         taskScheduler.schedule(() -> meetingRepository.findByIdAndDeletedFalse(meetingId)
                 .ifPresent(meetingEmailService::sendNotes), Instant.now().plus(3, ChronoUnit.SECONDS));
+    }
+
+    @Transactional
+    public void sendDueMeetingReminders() {
+        Instant now = Instant.now();
+        Instant latestStart = now.plus(15, ChronoUnit.MINUTES);
+        for (Meeting meeting : getScheduledMeetings()) {
+            Instant scheduledAt = meeting.getScheduledAt();
+            if (scheduledAt == null || scheduledAt.isBefore(now) || scheduledAt.isAfter(latestStart)
+                    || meeting.getReminderSentAt() != null) {
+                continue;
+            }
+            meetingEmailService.sendReminders(meeting);
+            meeting.setReminderSentAt(now);
+            meetingRepository.save(meeting);
+        }
     }
 
     private void setNotes(Meeting meeting, String notes) {

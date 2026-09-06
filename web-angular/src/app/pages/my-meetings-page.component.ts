@@ -1,44 +1,87 @@
 import {Component, inject, signal} from '@angular/core'
 import {DatePipe} from '@angular/common'
 import {FormsModule} from '@angular/forms'
-import {LucideAngularModule, Save} from 'lucide-angular'
+import {LucideAngularModule, Monitor, Save} from 'lucide-angular'
 import {MeetingApiService} from '../core/meeting-api.service'
 import {MeetingDto} from '../models/meeting.models'
 import {SessionsHeaderComponent} from '../shared/sessions-header.component'
+import {DateTimePickerComponent} from '../shared/date-time-picker.component'
+import {RichTextEditorComponent} from '../shared/rich-text-editor.component'
+
+const presets = [{label: 'HD (1280 × 720)', width: 1280, height: 720}, {
+    label: 'Full HD (1920 × 1080)',
+    width: 1920,
+    height: 1080
+}, {label: 'SD (854 × 480)', width: 854, height: 480}, {label: 'nHD (640 × 360)', width: 640, height: 360}]
 
 @Component({
     selector: 'app-my-meetings-page',
-    imports: [FormsModule, DatePipe, SessionsHeaderComponent, LucideAngularModule],
+    imports: [FormsModule, DatePipe, SessionsHeaderComponent, LucideAngularModule, DateTimePickerComponent, RichTextEditorComponent],
     template: `
         <div class="min-h-screen bg-page">
             <app-sessions-header title="My meetings"/>
-            <main class="mx-auto w-full max-w-4xl px-5 py-9"><h1 class="text-2xl font-semibold text-slate-900">My
+            <main class="mx-auto w-full max-w-[632px] px-5 py-9 pb-14"><h1 class="text-2xl font-semibold tracking-tight text-slate-900">My
                 meetings</h1>
                 <p class="mt-2 text-sm text-muted">Meetings created with your account.</p>@if (error()) {
                     <p class="mt-4 rounded-lg border border-danger/40 bg-danger/10 p-3 text-sm text-danger">{{ error() }}</p>
                 }
                 <div class="mt-7 space-y-4">@for (meeting of meetings(); track meeting.roomId) {
-                    <article class="session-card p-5">@if (editing() === meeting.roomId) {
-                        <div class="grid gap-3 sm:grid-cols-2"><label><span class="field-label">Title</span><input
-                                class="field-control" [(ngModel)]="draft.title"></label><label><span
-                                class="field-label">Scheduled at</span><input type="datetime-local"
-                                                                              class="field-control"
-                                                                              [(ngModel)]="draft.scheduledAt"></label><label><span
-                                class="field-label">Duration</span><input type="number" class="field-control"
-                                                                          [(ngModel)]="draft.durationLimitMinutes"></label><label
-                                class="flex items-center gap-2 pt-6"><input type="checkbox"
-                                                                            [(ngModel)]="draft.recordingEnabled">
-                            Recording enabled</label><label class="sm:col-span-2"><span
-                                class="field-label">Description</span><textarea class="field-control"
-                                                                                [(ngModel)]="draft.metadata"></textarea></label>
-                        </div>
-                        <div class="mt-4 flex gap-2">
-                            <button class="btn-primary" (click)="save(meeting)">
-                                <lucide-icon [img]="Save" class="mr-1 inline size-4"/>
-                                Save
-                            </button>
-                            <button class="btn-secondary" (click)="editing.set(null)">Cancel</button>
-                        </div>
+                    <article [class.session-card]="editing() !== meeting.roomId" [class.p-5]="editing() !== meeting.roomId">
+                        @if (editing() === meeting.roomId) {
+                            <section class="session-card p-5"><h2 class="section-label border-b border-line pb-3">Basic
+                                info</h2><label class="mt-4 block"><span class="field-label">Title</span><input
+                                    class="field-control" [(ngModel)]="draft.title" placeholder="Q3 Product Review"></label>
+                            </section>
+                            <section class="session-card p-5"><h2 class="section-label border-b border-line pb-3">
+                                Schedule</h2>
+                                <div class="mt-4 grid gap-4 sm:grid-cols-[1fr_120px]"><label><span class="field-label">Scheduled at</span>
+                                    <app-date-time-picker [(ngModel)]="draft.scheduledAt"/>
+                                </label><label><span class="field-label">Duration (minutes)</span><input type="number" min="1"
+                                                                                                             max="480"
+                                                                                                             [(ngModel)]="draft.durationLimitMinutes"
+                                                                                                             class="field-control"></label>
+                                </div>
+                            </section>
+                            <section class="session-card p-5"><h2 class="section-label border-b border-line pb-3">
+                                Additional Information</h2>
+                                <div class="mt-4"><span class="field-label">Description (optional)</span>
+                                    <app-rich-text-editor [(ngModel)]="draft.metadata"/>
+                                </div>
+                            </section>
+                            <section class="session-card p-5"><h2 class="section-label border-b border-line pb-3">
+                                Recording</h2>
+                                <div class="mt-4 flex items-center justify-between"><span class="text-sm text-slate-600">Enable recording</span>
+                                    <button type="button" (click)="toggleRecording()"
+                                            class="relative h-6 w-11 rounded-full transition"
+                                            [class.bg-brand]="draft.recordingEnabled" [class.bg-slate-300]="!draft.recordingEnabled"><span
+                                            class="absolute top-1 size-4 rounded-full bg-white transition"
+                                            [class.left-1]="!draft.recordingEnabled" [class.left-6]="draft.recordingEnabled"></span>
+                                    </button>
+                                </div>
+                                @if (draft.recordingEnabled) {
+                                    <div class="mt-4 grid gap-3 sm:grid-cols-3"><label class="sm:col-span-3"><span
+                                            class="field-label">Resolution preset</span><select class="field-control"
+                                                                                               [value]="recordingPreset()"
+                                                                                               (change)="selectPreset($event)">
+                                        @for (preset of presets; track preset.label) {
+                                            <option [value]="preset.width + 'x' + preset.height">{{ preset.label }}</option>
+                                        }
+                                        <option value="custom">Custom</option>
+                                    </select></label><label><span class="field-label">Width</span><input type="number" min="2"
+                                                                                                             [(ngModel)]="draft.recordingWidth"
+                                                                                                             class="field-control"></label><label><span
+                                            class="field-label">Height</span><input type="number" min="2"
+                                                                                    [(ngModel)]="draft.recordingHeight"
+                                                                                    class="field-control"></label>
+                                        <div class="flex items-end"><lucide-icon [img]="Monitor" class="mb-3 size-5 text-muted"/>
+                                            <span class="mb-3 ml-2 text-xs text-muted">MP4</span></div>
+                                    </div>
+                                }
+                            </section>
+                            <div class="flex gap-2">
+                                <button class="btn-primary" (click)="save(meeting)"><lucide-icon [img]="Save" class="mr-1 inline size-4"/>Save</button>
+                                <button class="btn-secondary" (click)="editing.set(null)">Cancel</button>
+                            </div>
                     } @else {
                         <div class="flex items-start justify-between gap-4">
                             <div><h2 class="text-lg font-semibold text-slate-900">{{ meeting.title }}</h2>
@@ -76,7 +119,9 @@ export class MyMeetingsPageComponent {
     readonly blockedMeeting = signal<MeetingDto | null>(null)
     readonly error = signal('')
     draft: any = {}
+    readonly presets = presets
     protected readonly Save = Save
+    protected readonly Monitor = Monitor
 
     constructor() {
         this.api.getMyMeetings().subscribe({
@@ -95,9 +140,26 @@ export class MyMeetingsPageComponent {
             ...meeting,
             scheduledAt: new Date(meeting.scheduledAt).toISOString().slice(0, 16),
             metadata: meeting.metadata || '',
-            recordingWidth: meeting.recording?.width || 1280,
-            recordingHeight: meeting.recording?.height || 720
+            recordingWidth: meeting.recordingWidth || meeting.recording?.width || 1280,
+            recordingHeight: meeting.recordingHeight || meeting.recording?.height || 720
         }
+    }
+
+    toggleRecording(): void {
+        this.draft.recordingEnabled = !this.draft.recordingEnabled
+    }
+
+    selectPreset(event: Event): void {
+        const value = (event.target as HTMLSelectElement).value
+        if (value === 'custom') return
+        const [width, height] = value.split('x').map(Number)
+        this.draft.recordingWidth = width
+        this.draft.recordingHeight = height
+    }
+
+    recordingPreset(): string {
+        const preset = this.presets.find(item => item.width === Number(this.draft.recordingWidth) && item.height === Number(this.draft.recordingHeight))
+        return preset ? `${preset.width}x${preset.height}` : 'custom'
     }
 
     save(meeting: MeetingDto): void {
@@ -107,8 +169,13 @@ export class MyMeetingsPageComponent {
             return
         }
         this.api.updateMeeting(meeting.roomId, {
-            ...this.draft,
-            scheduledAt: new Date(this.draft.scheduledAt).toISOString()
+            title: this.draft.title?.trim() || '',
+            scheduledAt: new Date(this.draft.scheduledAt).toISOString(),
+            durationLimitMinutes: Number(this.draft.durationLimitMinutes),
+            recordingEnabled: !!this.draft.recordingEnabled,
+            recordingWidth: this.even(Number(this.draft.recordingWidth)),
+            recordingHeight: this.even(Number(this.draft.recordingHeight)),
+            metadata: this.draft.metadata?.trim() || null
         }).subscribe({
             next: value => {
                 this.meetings.update(items => items.map(item => item.roomId === value.roomId ? value : item));
@@ -122,6 +189,10 @@ export class MyMeetingsPageComponent {
                 this.error.set(e.error?.message || 'Could not update meeting.')
             }
         })
+    }
+
+    private even(value: number): number {
+        return Math.max(2, Math.floor(value / 2) * 2)
     }
 
     closeBlockedModal(): void {

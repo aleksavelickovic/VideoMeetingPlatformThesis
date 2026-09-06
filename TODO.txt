@@ -3,8 +3,11 @@ Mejlovi (summarty - free text i linkovi)*
 Invintation text pored summary-a*
 Connection deo izbaciti*
 Meeting decription (summary) umesto additional medatadata u RichText umesto JSON*
-Editovanje sastanka samo za ulogovanog korisnika (ako nije poceo ili se niko nije pridruzio 15min ranije)
-15 minuta pre sastanka ucesnicima se salje na mejl podsetnik za sastanak.
+Editovanje sastanka samo za ulogovanog korisnika (ako nije poceo ili se niko nije pridruzio 15min ranije):
+- Lepsi Email template prilikom edita sastanka*
+- Email podsetnik 15 min pre sastanka*
+- Dati mogucnost korisniku da otkaze sastanak.
+
 Edit lozinke preko mail-a, NE otvaranjem Keycloack konzole!*
 Additional metadata se dodaje u sastanku (izbaciti iz kreiranja sastanka), omoguciti hostu da tokom sastanka ima popup za beleske. po zavrsetku se te beleske salju sa summary svima na mejl*
 Promeni app i IDE u light theme za screenshots*

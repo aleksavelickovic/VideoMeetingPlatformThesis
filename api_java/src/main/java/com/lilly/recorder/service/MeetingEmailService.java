@@ -51,6 +51,24 @@ public class MeetingEmailService {
         }
     }
 
+    public void sendReminders(Meeting meeting) {
+        if (!properties.getMail().isEnabled()) return;
+        for (Participant participant : meeting.getParticipants()) {
+            if (participant.getEmail() == null || participant.getEmail().isBlank()) continue;
+            try {
+                MimeMessage message = mailSender.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(message, false, "UTF-8");
+                helper.setFrom(properties.getMail().getFrom());
+                helper.setTo(participant.getEmail());
+                helper.setSubject("Reminder: " + meeting.getTitle());
+                helper.setText(buildReminderHtml(meeting, participant), true);
+                mailSender.send(message);
+            } catch (Exception exception) {
+                log.warn("Could not send meeting reminder to {}", participant.getEmail(), exception);
+            }
+        }
+    }
+
     public void sendNotes(Meeting meeting) {
         if (!properties.getMail().isEnabled()) return;
         for (Participant participant : meeting.getParticipants()) {
@@ -69,7 +87,7 @@ public class MeetingEmailService {
         }
     }
 
-    public void sendMeetingUpdate(Meeting meeting, List<String> changes) {
+    public void sendMeetingUpdate(Meeting meeting, String previousTitle, List<String> changes) {
         if (!properties.getMail().isEnabled()) return;
         for (Participant participant : meeting.getParticipants()) {
             if (participant.getEmail() == null || participant.getEmail().isBlank()) continue;
@@ -78,14 +96,76 @@ public class MeetingEmailService {
                 MimeMessageHelper helper = new MimeMessageHelper(message, false, "UTF-8");
                 helper.setFrom(properties.getMail().getFrom());
                 helper.setTo(participant.getEmail());
-                helper.setSubject("Meeting updated: " + meeting.getTitle());
-                helper.setText("<p>The meeting <strong>" + escape(meeting.getTitle()) + "</strong> was updated.</p>"
-                        + "<p>Changed data: " + escape(String.join(", ", changes)) + ".</p>", true);
+                helper.setSubject("Meeting (" + previousTitle + ") has been changed");
+                helper.setText(buildUpdateHtml(meeting, participant, changes), true);
                 mailSender.send(message);
             } catch (Exception exception) {
                 log.warn("Could not send meeting update to {}", participant.getEmail(), exception);
             }
         }
+    }
+
+    private String buildUpdateHtml(Meeting meeting, Participant participant, List<String> changes) {
+        String title = escape(meeting.getTitle());
+        String start = meeting.getScheduledAt() == null ? "—" : DATE_FORMAT.format(meeting.getScheduledAt());
+        String end = meeting.getScheduledAt() == null ? "—" : DATE_FORMAT.format(meeting.getScheduledAt().plusSeconds(meeting.getDurationLimitMinutes() * 60L));
+        String joinLink = participant.getJoinLink() == null ? "" : participant.getJoinLink();
+
+        return """
+                <!doctype html><html><body style="margin:0;background:#f4f7fb;font-family:Arial,sans-serif;color:#172033">
+                <div style="max-width:620px;margin:0 auto;padding:32px 16px">
+                  <div style="background:#2563eb;padding:24px 28px;border-radius:16px 16px 0 0;color:white">
+                    <div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;opacity:.8">Lilly Meetings</div>
+                    <h1 style="margin:12px 0 0;font-size:26px;line-height:1.2">Meeting details changed</h1>
+                    <p style="margin:8px 0 0;font-size:17px;opacity:.9">%s</p>
+                  </div>
+                  <div style="background:white;padding:28px;border-radius:0 0 16px 16px;box-shadow:0 8px 24px #1e40781c">
+                    <p style="margin:0 0 20px;font-size:16px">Hello %s, the details of this meeting have been changed.</p>
+                    <div style="background:#eff6ff;border-radius:12px;padding:16px;margin:20px 0">
+                      <div style="font-size:13px;color:#64748b;margin-bottom:8px">UPDATED MEETING DETAILS</div>
+                      <div style="margin:5px 0"><strong>Starts:</strong> %s</div>
+                      <div style="margin:5px 0"><strong>Ends:</strong> %s</div>
+                      <div style="margin:5px 0"><strong>Duration:</strong> %s</div>
+                    </div>
+                    <h2 style="font-size:16px;margin:26px 0 10px">What changed</h2>
+                    <div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden">%s</div>
+                    <div style="text-align:center;margin:28px 0"><a href="%s" style="display:inline-block;background:#2563eb;color:#fff;text-decoration:none;font-weight:bold;padding:13px 26px;border-radius:9px">Join meeting</a></div>
+                    <p style="font-size:12px;color:#64748b;word-break:break-all">If the button does not work, copy this link into your browser:<br><br>%s</p>
+                  </div>
+                  <p style="text-align:center;color:#94a3b8;font-size:12px;margin:18px 0">This update was sent by Lilly Meetings.</p>
+                </div></body></html>
+                """.formatted(title, escape(participant.getName()), start, end,
+                formatDuration(meeting.getDurationLimitMinutes()), changeRows(meeting, changes),
+                escapeAttribute(joinLink), escape(joinLink));
+    }
+
+    private String changeRows(Meeting meeting, List<String> changes) {
+        return changes.stream().map(change -> {
+            String value = switch (change) {
+                case "title" -> escape(meeting.getTitle());
+                case "scheduled time" -> meetingTime(meeting.getScheduledAt());
+                case "duration" -> escape(formatDuration(meeting.getDurationLimitMinutes()));
+                case "recording" -> meeting.isRecordingEnabled() ? "Enabled" : "Disabled";
+                case "recording resolution" -> escape(meeting.getRecordingWidth() + " × " + meeting.getRecordingHeight());
+                case "description" -> richText(meeting.getMetadata()).isBlank() ? "No description" : richText(meeting.getMetadata());
+                default -> "Updated";
+            };
+            return "<div style=\"padding:13px 16px;border-bottom:1px solid #e2e8f0\"><strong>" +
+                    escape(changeLabel(change)) + "</strong><div style=\"margin-top:4px;color:#64748b;font-size:13px;line-height:1.6\">" +
+                    value + "</div></div>";
+        }).collect(java.util.stream.Collectors.joining());
+    }
+
+    private String changeLabel(String change) {
+        return switch (change) {
+            case "title" -> "Title";
+            case "scheduled time" -> "Scheduled time";
+            case "duration" -> "Duration";
+            case "recording" -> "Recording";
+            case "recording resolution" -> "Recording resolution";
+            case "description" -> "Description";
+            default -> change;
+        };
     }
 
     private String buildReportHtml(Meeting meeting, Participant recipient) {
@@ -192,6 +272,40 @@ public class MeetingEmailService {
         helper.setSubject("Invitation: " + meeting.getTitle());
         helper.setText(buildHtml(meeting, participant), true);
         mailSender.send(message);
+    }
+
+    private String buildReminderHtml(Meeting meeting, Participant participant) {
+        String title = escape(meeting.getTitle());
+        String start = meeting.getScheduledAt() == null ? "—" : DATE_FORMAT.format(meeting.getScheduledAt());
+        String end = meeting.getScheduledAt() == null ? "—" : DATE_FORMAT.format(meeting.getScheduledAt().plusSeconds(meeting.getDurationLimitMinutes() * 60L));
+        String joinLink = participant.getJoinLink() == null ? "" : participant.getJoinLink();
+        String summary = richText(meeting.getMetadata());
+
+        return """
+                <!doctype html><html><body style="margin:0;background:#f4f7fb;font-family:Arial,sans-serif;color:#172033">
+                <div style="max-width:620px;margin:0 auto;padding:32px 16px">
+                  <div style="background:#2563eb;padding:24px 28px;border-radius:16px 16px 0 0;color:white">
+                    <div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;opacity:.8">Lilly Meetings</div>
+                    <h1 style="margin:12px 0 0;font-size:26px;line-height:1.2">Your meeting starts soon</h1>
+                    <p style="margin:8px 0 0;font-size:17px;opacity:.9">%s</p>
+                  </div>
+                  <div style="background:white;padding:28px;border-radius:0 0 16px 16px;box-shadow:0 8px 24px #1e40781c">
+                    <p style="margin:0 0 20px;font-size:16px">Hello %s, your meeting starts in 15 minutes.</p>
+                    <div style="background:#eff6ff;border-radius:12px;padding:16px;margin:20px 0">
+                      <div style="font-size:13px;color:#64748b;margin-bottom:8px">MEETING DETAILS</div>
+                      <div style="margin:5px 0"><strong>Starts:</strong> %s</div>
+                      <div style="margin:5px 0"><strong>Ends:</strong> %s</div>
+                      <div style="margin:5px 0"><strong>Duration:</strong> %s</div>
+                    </div>
+                    %s
+                    <div style="text-align:center;margin:28px 0"><a href="%s" style="display:inline-block;background:#2563eb;color:#fff;text-decoration:none;font-weight:bold;padding:13px 26px;border-radius:9px">Join meeting</a></div>
+                    <p style="font-size:12px;color:#64748b;word-break:break-all">If the button does not work, copy this link into your browser:<br><br>%s</p>
+                  </div>
+                  <p style="text-align:center;color:#94a3b8;font-size:12px;margin:18px 0">This reminder was sent by Lilly Meetings.</p>
+                </div></body></html>
+                """.formatted(title, escape(participant.getName()), start, end,
+                formatDuration(meeting.getDurationLimitMinutes()), summaryBlock(summary),
+                escapeAttribute(joinLink), escape(joinLink));
     }
 
     private String buildHtml(Meeting meeting, Participant participant) {
