@@ -89,7 +89,12 @@ const presets = [{label: 'HD (1280 × 720)', width: 1280, height: 720}, {
                                     · {{ meeting.scheduledAt | date:'medium' }}</p>
                                 <p class="mt-2 text-sm text-slate-600">{{ meeting.participants.length }} participants
                                     · {{ meeting.durationLimitMinutes }} min</p></div>
-                            <button class="btn-secondary px-3 py-2 text-xs" (click)="edit(meeting)">Edit</button>
+                            <div class="flex shrink-0 gap-2">
+                                <button class="btn-secondary px-3 py-2 text-xs" (click)="edit(meeting)">Edit</button>
+                                @if (meeting.status === 'scheduled') {
+                                    <button class="btn-danger px-3 py-2 text-xs" (click)="requestCancellation(meeting)">Cancel Meeting</button>
+                                }
+                            </div>
                         </div>
                     }</article>
                 } @empty {
@@ -110,6 +115,20 @@ const presets = [{label: 'HD (1280 × 720)', width: 1280, height: 720}, {
                     <button class="btn-primary mt-5 w-full" (click)="closeBlockedModal()">Close</button>
                 </section>
             </div>
+        }
+        @if (cancellationTarget()) {
+            <div class="fixed inset-0 z-40 grid place-items-center bg-slate-950/40 p-4 backdrop-blur-sm"
+                 (click)="closeCancellationModal()">
+                <section class="w-full max-w-md rounded-2xl border border-line bg-white p-6 shadow-2xl" role="dialog"
+                         aria-modal="true" aria-labelledby="cancel-meeting-title" (click)="$event.stopPropagation()">
+                    <h2 id="cancel-meeting-title" class="text-lg font-semibold text-slate-900">Cancel meeting?</h2>
+                    <p class="mt-3 text-sm leading-6 text-slate-600">Are you sure you want to cancel <strong>{{ cancellationTarget()?.title }}</strong>? All participants will be notified by email and will no longer be able to join.</p>
+                    <div class="mt-5 flex justify-end gap-2">
+                        <button class="btn-secondary" [disabled]="cancelling()" (click)="closeCancellationModal()">No, keep it</button>
+                        <button class="btn-danger" [disabled]="cancelling()" (click)="confirmCancellation()">{{ cancelling() ? 'Cancelling…' : 'Yes, cancel meeting' }}</button>
+                    </div>
+                </section>
+            </div>
         }</div>`
 })
 export class MyMeetingsPageComponent {
@@ -117,6 +136,8 @@ export class MyMeetingsPageComponent {
     readonly meetings = signal<MeetingDto[]>([])
     readonly editing = signal<string | null>(null)
     readonly blockedMeeting = signal<MeetingDto | null>(null)
+    readonly cancellationTarget = signal<MeetingDto | null>(null)
+    readonly cancelling = signal(false)
     readonly error = signal('')
     draft: any = {}
     readonly presets = presets
@@ -189,6 +210,40 @@ export class MyMeetingsPageComponent {
                 this.error.set(e.error?.message || 'Could not update meeting.')
             }
         })
+    }
+
+    requestCancellation(meeting: MeetingDto): void {
+        if (!this.canEdit(meeting)) {
+            this.blockedMeeting.set(meeting)
+            return
+        }
+        this.error.set('')
+        this.cancellationTarget.set(meeting)
+    }
+
+    confirmCancellation(): void {
+        const meeting = this.cancellationTarget()
+        if (!meeting || this.cancelling()) return
+        this.cancelling.set(true)
+        this.api.cancelMeeting(meeting.roomId).subscribe({
+            next: value => {
+                this.meetings.update(items => items.map(item => item.roomId === value.roomId ? value : item))
+                this.cancellationTarget.set(null)
+                this.cancelling.set(false)
+            }, error: e => {
+                this.cancelling.set(false)
+                this.cancellationTarget.set(null)
+                if (e.status === 409) {
+                    this.blockedMeeting.set(meeting)
+                    return
+                }
+                this.error.set(e.error?.message || 'Could not cancel meeting.')
+            }
+        })
+    }
+
+    closeCancellationModal(): void {
+        if (!this.cancelling()) this.cancellationTarget.set(null)
     }
 
     private even(value: number): number {

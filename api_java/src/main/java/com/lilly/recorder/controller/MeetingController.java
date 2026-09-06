@@ -58,6 +58,13 @@ public class MeetingController {
         return ResponseEntity.ok(meetingMapper.toDto(meeting, java.util.Map.of(), meetingService.getMeetingPresignedUrl(meeting)));
     }
 
+    @PostMapping("/{roomId}/cancel")
+    public ResponseEntity<MeetingDto> cancel(@PathVariable UUID roomId, Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) return ResponseEntity.status(401).build();
+        Meeting meeting = meetingService.cancel(roomId, authenticatedSubject(authentication));
+        return ResponseEntity.ok(meetingMapper.toDto(meeting, java.util.Map.of(), meetingService.getMeetingPresignedUrl(meeting)));
+    }
+
     private String authenticatedSubject(Authentication authentication) {
         if (authentication instanceof JwtAuthenticationToken jwtAuthentication) {
             String subject = jwtAuthentication.getToken().getSubject();

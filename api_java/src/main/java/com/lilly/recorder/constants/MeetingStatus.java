@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum MeetingStatus {
     SCHEDULED("scheduled"),
+    CANCELLED("cancelled"),
     IN_PROGRESS("in_progress"),
     COMPLETED("completed"),
     FAILED("failed"),

@@ -183,6 +183,23 @@ public class MeetingService {
         return saved;
     }
 
+    @Transactional
+    public Meeting cancel(UUID roomId, String ownerSubject) {
+        Meeting meeting = getByRoomId(roomId);
+        if (ownerSubject == null || !ownerSubject.equals(meeting.getOwnerSubject())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only the meeting owner can cancel this meeting");
+        }
+        if (meeting.getStatus() != MeetingStatus.SCHEDULED
+                || meeting.getScheduledAt() == null
+                || !meeting.getScheduledAt().isAfter(Instant.now().plus(15, ChronoUnit.MINUTES))) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Meeting can only be cancelled more than 15 minutes before it starts");
+        }
+        meeting.setStatus(MeetingStatus.CANCELLED);
+        Meeting saved = meetingRepository.save(meeting);
+        meetingEmailService.sendCancellation(saved);
+        return saved;
+    }
+
     @Transactional(readOnly = true)
     public FilterList<Meeting> getList(MeetingFilterRequest filter) {
         Specification<Meeting> specification = (root, query, builder) -> {

@@ -105,6 +105,53 @@ public class MeetingEmailService {
         }
     }
 
+    public void sendCancellation(Meeting meeting) {
+        if (!properties.getMail().isEnabled()) return;
+        for (Participant participant : meeting.getParticipants()) {
+            if (participant.getEmail() == null || participant.getEmail().isBlank()) continue;
+            try {
+                MimeMessage message = mailSender.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(message, false, "UTF-8");
+                helper.setFrom(properties.getMail().getFrom());
+                helper.setTo(participant.getEmail());
+                helper.setSubject("Meeting cancelled: " + meeting.getTitle());
+                helper.setText(buildCancellationHtml(meeting, participant), true);
+                mailSender.send(message);
+            } catch (Exception exception) {
+                log.warn("Could not send meeting cancellation to {}", participant.getEmail(), exception);
+            }
+        }
+    }
+
+    // TODO izmeniti text mejla (ne mora da bude otkazan od strane host-a vec od strane kreatora koji ne mora biti host)
+    private String buildCancellationHtml(Meeting meeting, Participant participant) {
+        String title = escape(meeting.getTitle());
+        String start = meeting.getScheduledAt() == null ? "—" : DATE_FORMAT.format(meeting.getScheduledAt());
+        String end = meeting.getScheduledAt() == null ? "—" : DATE_FORMAT.format(meeting.getScheduledAt().plusSeconds(meeting.getDurationLimitMinutes() * 60L));
+
+        return """
+                <!doctype html><html><body style="margin:0;background:#f4f7fb;font-family:Arial,sans-serif;color:#172033">
+                <div style="max-width:620px;margin:0 auto;padding:32px 16px">
+                  <div style="background:#dc3545;padding:24px 28px;border-radius:16px 16px 0 0;color:white">
+                    <div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;opacity:.85">Lilly Meetings</div>
+                    <h1 style="margin:12px 0 0;font-size:26px;line-height:1.2">Meeting cancelled</h1>
+                    <p style="margin:8px 0 0;font-size:17px;opacity:.92">%s</p>
+                  </div>
+                  <div style="background:white;padding:28px;border-radius:0 0 16px 16px;box-shadow:0 8px 24px #1e40781c">
+                    <p style="margin:0 0 20px;font-size:16px">Hello %s, this meeting has been cancelled by the host.</p>
+                    <div style="background:#fff1f2;border:1px solid #fecdd3;border-radius:12px;padding:16px;margin:20px 0">
+                      <div style="font-size:13px;color:#be123c;margin-bottom:8px">CANCELLED MEETING</div>
+                      <div style="margin:5px 0"><strong>Was scheduled:</strong> %s</div>
+                      <div style="margin:5px 0"><strong>Was expected to end:</strong> %s</div>
+                      <div style="margin:5px 0"><strong>Duration:</strong> %s</div>
+                    </div>
+                    <p style="margin:0;color:#475569;line-height:1.6">You do not need to take any further action. Please contact the host if you have questions.</p>
+                  </div>
+                  <p style="text-align:center;color:#94a3b8;font-size:12px;margin:18px 0">This cancellation notice was sent by Lilly Meetings.</p>
+                </div></body></html>
+                """.formatted(title, escape(participant.getName()), start, end, formatDuration(meeting.getDurationLimitMinutes()));
+    }
+
     private String buildUpdateHtml(Meeting meeting, Participant participant, List<String> changes) {
         String title = escape(meeting.getTitle());
         String start = meeting.getScheduledAt() == null ? "—" : DATE_FORMAT.format(meeting.getScheduledAt());

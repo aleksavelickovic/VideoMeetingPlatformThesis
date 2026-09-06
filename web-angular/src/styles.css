@@ -208,3 +208,7 @@ button:disabled {
 .btn-secondary {
     @apply inline-flex items-center justify-center gap-2 rounded-lg border border-line bg-white px-4 py-3 text-sm font-medium text-slate-700 shadow-sm transition hover:-translate-y-px hover:border-brand hover:bg-blue-50 hover:text-brand hover:shadow-md hover:shadow-blue-100;
 }
+
+.btn-danger {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-danger px-4 py-3 text-sm font-semibold text-white shadow-md shadow-red-200/70 transition hover:-translate-y-px hover:bg-red-700 hover:shadow-lg hover:shadow-red-200/80 disabled:opacity-50;
+}

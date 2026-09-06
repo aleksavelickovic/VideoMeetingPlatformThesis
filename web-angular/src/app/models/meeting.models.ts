@@ -1,6 +1,7 @@
 export type ParticipantRole = 'host' | 'guest'
 export type MeetingStatus =
     'scheduled'
+    | 'cancelled'
     | 'in_progress'
     | 'completed'
     | 'failed'
