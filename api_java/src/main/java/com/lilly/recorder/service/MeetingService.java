@@ -153,6 +153,13 @@ public class MeetingService {
         if (ownerSubject == null || !ownerSubject.equals(meeting.getOwnerSubject())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only the meeting owner can edit this meeting");
         }
+        if (meeting.getStatus() != MeetingStatus.SCHEDULED
+                || meeting.getScheduledAt() == null
+                || !meeting.getScheduledAt().isAfter(Instant.now().plus(15, ChronoUnit.MINUTES))
+                || dto.getScheduledAt() == null
+                || !dto.getScheduledAt().isAfter(Instant.now().plus(15, ChronoUnit.MINUTES))) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Meeting can only be edited more than 15 minutes before it starts");
+        }
         java.util.List<String> changes = new ArrayList<>();
         if (!java.util.Objects.equals(meeting.getTitle(), dto.getTitle())) { changes.add("title"); meeting.setTitle(dto.getTitle()); }
         if (!java.util.Objects.equals(meeting.getScheduledAt(), dto.getScheduledAt())) { changes.add("scheduled time"); meeting.setScheduledAt(dto.getScheduledAt()); }
