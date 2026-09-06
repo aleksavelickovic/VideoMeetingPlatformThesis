@@ -32,7 +32,8 @@ public class SessionCleanupScheduler {
         }
 
         for (Meeting meeting : meetingService.getScheduledMeetings()) {
-            Instant timeout = meeting.getScheduledAt() != null ? meeting.getScheduledAt() : meeting.getDateCreated();
+            Instant meetingStart = meeting.getScheduledAt() != null ? meeting.getScheduledAt() : meeting.getDateCreated();
+            Instant timeout = meetingStart.plusSeconds((meeting.getDurationLimitMinutes() + 15L) * 60L);
             if (!Instant.now().isBefore(timeout)) {
                 try {
                     meetingService.cancelIfNotStarted(meeting.getId());

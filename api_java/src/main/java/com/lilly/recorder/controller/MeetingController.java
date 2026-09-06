@@ -80,6 +80,16 @@ public class MeetingController {
         ));
     }
 
+    @GetMapping("/{roomId}/access")
+    public ResponseEntity<MeetingDto> validateJoinAccess(@PathVariable UUID roomId) {
+        Meeting meeting = meetingService.validateJoinAccess(roomId);
+        return ResponseEntity.ok(meetingMapper.toDto(
+                meeting,
+                java.util.Map.of(),
+                null
+        ));
+    }
+
     @PostMapping("/{roomId}/end")
     public ResponseEntity<MeetingDto> endMeeting(@PathVariable UUID roomId, @Valid @RequestBody(required = false) EndMeetingDto request) {
         Meeting meeting = meetingService.endMeeting(roomId, EndMeetingReason.MANUAL, request == null ? null : request.getNotes());

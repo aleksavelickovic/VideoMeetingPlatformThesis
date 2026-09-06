@@ -329,7 +329,7 @@ export class CreateMeetingPageComponent {
             this.error.set('Complete all required fields with a future date and exactly one host.');
             return
         }
-        const scheduledAt = new Date(data.scheduledAt as string);
+        const scheduledAt = this.parseLocalDateTime(data.scheduledAt as string);
         if (Number.isNaN(scheduledAt.getTime()) || scheduledAt <= new Date()) {
             this.error.set('Scheduled date and time must be in the future.');
             return
@@ -359,5 +359,17 @@ export class CreateMeetingPageComponent {
 
     private even(value: number): number {
         return Math.max(2, Math.floor(value / 2) * 2)
+    }
+
+    private parseLocalDateTime(value: string): Date {
+        const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(value)
+        if (!match) return new Date('invalid')
+        return new Date(
+            Number(match[1]),
+            Number(match[2]) - 1,
+            Number(match[3]),
+            Number(match[4]),
+            Number(match[5])
+        )
     }
 }

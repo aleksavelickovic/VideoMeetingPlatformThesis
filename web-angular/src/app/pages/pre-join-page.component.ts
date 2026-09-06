@@ -6,6 +6,7 @@ import {Camera, CameraOff, ChevronDown, LucideAngularModule, Mic, MicOff, UserRo
 import {readJoinIdentity} from '../core/jwt.util'
 import {MediaDevicesService} from '../core/media-devices.service'
 import {MeetingApiService} from '../core/meeting-api.service'
+import {MeetingDto} from '../models/meeting.models'
 import {SessionsHeaderComponent} from '../shared/sessions-header.component'
 
 @Component({
@@ -34,6 +35,19 @@ import {SessionsHeaderComponent} from '../shared/sessions-header.component'
                     </section>
                     <section class="flex h-full flex-col rounded-2xl border border-line bg-white/80 p-6 shadow-panel backdrop-blur-sm"><h1 class="text-xl font-semibold text-slate-900">Ready to join?</h1>
                         <p class="mt-1 text-sm text-muted">{{ meetingTitle() || 'Meeting' }}</p>
+                        @if (countdownSeconds() > 0) {
+                            <div class="mt-5 rounded-lg border border-blue-200 bg-blue-50 p-3 text-center text-sm text-blue-800">
+                                Meeting starts in <strong>{{ countdownText() }}</strong>
+                            </div>
+                        }
+                        @if (countdownTarget()) {
+                            <label class="mt-4 flex cursor-pointer items-start gap-3 rounded-xl border border-line bg-slate-50 p-3 transition hover:border-brand hover:bg-blue-50">
+                                <input type="checkbox" class="mt-0.5 size-4 accent-blue-600" [checked]="autoJoin()"
+                                       (change)="setAutoJoin($any($event.target).checked)">
+                                <span><span class="block text-sm font-medium text-slate-800">Join automatically when the meeting starts</span>
+                                    <span class="mt-1 block text-xs text-muted">You can still join manually when the countdown ends.</span></span>
+                            </label>
+                        }
                         <div class="mt-6 flex flex-1 flex-col justify-between space-y-4"><label><span class="field-label">Your name</span>
                             <div class="relative"><input [ngModel]="name()" (ngModelChange)="name.set($event)"
                                                          class="field-control pl-10">
@@ -84,8 +98,8 @@ import {SessionsHeaderComponent} from '../shared/sessions-header.component'
                                     {{ microphoneEnabled() ? 'Mic on' : 'Mic off' }}
                                 </button>
                             </div>
-                            <button class="btn-primary w-full" [disabled]="!token || !name().trim() || joining()"
-                                    (click)="join()">{{ joining() ? 'Joining…' : 'Join Meeting' }}
+                            <button class="btn-primary w-full" [disabled]="!token || !name().trim() || joining() || countdownSeconds() > 0"
+                                    (click)="join()">{{ joining() ? 'Joining…' : countdownSeconds() > 0 ? 'Waiting for meeting…' : 'Join Meeting' }}
                             </button>
 <!--                            <button class="btn-secondary w-full" (click)="back()">Back</button>-->
                         </div>
@@ -109,10 +123,14 @@ export class PreJoinPageComponent implements AfterViewInit, OnDestroy {
     readonly meetingTitle = signal('');
     readonly error = signal('');
     readonly joining = signal(false)
+    readonly countdownSeconds = signal(0)
+    readonly countdownTarget = signal<number | null>(null)
+    readonly autoJoin = signal(false)
     readonly cameraEnabled = signal(true)
     readonly microphoneEnabled = signal(true)
     readonly previewStream = signal<MediaStream | null>(null)
     private previewRequest = 0
+    private countdownTimer?: ReturnType<typeof setInterval>
     protected readonly Camera = Camera;
     protected readonly CameraOff = CameraOff;
     protected readonly ChevronDown = ChevronDown;
@@ -126,7 +144,89 @@ export class PreJoinPageComponent implements AfterViewInit, OnDestroy {
         this.cameraId.set(this.devices.cameras()[0]?.deviceId ?? '');
         this.microphoneId.set(this.devices.microphones()[0]?.deviceId ?? '');
         await this.updatePreview();
-        this.api.getMeeting(this.roomId).subscribe({next: result => this.meetingTitle.set(result.title)})
+        this.api.getMeeting(this.roomId).subscribe({
+            next: result => {
+                this.meetingTitle.set(result.title)
+                this.prepareAccess(result)
+            },
+            error: () => this.error.set('Could not load the meeting.')
+        })
+    }
+
+    private prepareAccess(meeting: MeetingDto): void {
+        const start = new Date(meeting.scheduledAt || meeting.startedAt || Date.now()).getTime()
+        const end = start + meeting.durationLimitMinutes * 60_000
+        const now = Date.now()
+        const isInProgress = meeting.status === 'in_progress' && now >= start && now < end
+        const isScheduledBeforeStart = meeting.status === 'scheduled' && now < start
+        if (isInProgress) return
+        if (isScheduledBeforeStart) this.startCountdown(start)
+    }
+
+    private startCountdown(target: number): void {
+        clearInterval(this.countdownTimer)
+        this.countdownTarget.set(target)
+        this.updateCountdown(target)
+        this.countdownTimer = setInterval(() => {
+            this.updateCountdown(target)
+            if (this.countdownSeconds() <= 0) {
+                clearInterval(this.countdownTimer)
+                if (this.autoJoin()) void this.join()
+            }
+        }, 1000)
+    }
+
+    private updateCountdown(target: number): void {
+        this.countdownSeconds.set(Math.max(0, Math.ceil((target - Date.now()) / 1000)))
+    }
+
+    countdownText(): string {
+        const target = this.countdownTarget()
+        if (!target) return '00:00:00'
+        let cursor = new Date()
+        const end = new Date(target)
+        let years = 0
+        while (this.addYears(cursor, years + 1) <= end) years++
+        cursor = this.addYears(cursor, years)
+        let months = 0
+        while (this.addMonths(cursor, months + 1) <= end) months++
+        cursor = this.addMonths(cursor, months)
+        const days = Math.floor((end.getTime() - cursor.getTime()) / 86_400_000)
+        cursor = new Date(cursor.getTime() + days * 86_400_000)
+        const hours = Math.floor((end.getTime() - cursor.getTime()) / 3_600_000)
+        cursor = new Date(cursor.getTime() + hours * 3_600_000)
+        const minutes = Math.floor((end.getTime() - cursor.getTime()) / 60_000)
+        const seconds = Math.max(0, Math.floor((end.getTime() - cursor.getTime() - minutes * 60_000) / 1000))
+        const time = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+        if (years > 0) return `${years} year${years === 1 ? '' : 's'} ${months} month${months === 1 ? '' : 's'} ${days} day${days === 1 ? '' : 's'} ${time}`
+        if (months > 0) return `${months} month${months === 1 ? '' : 's'} ${days} day${days === 1 ? '' : 's'} ${time}`
+        if (days > 0) return `${days} day${days === 1 ? '' : 's'} ${time}`
+        return time
+    }
+
+    setAutoJoin(value: boolean): void {
+        this.autoJoin.set(value)
+        if (value && this.countdownTarget() && this.countdownSeconds() <= 0) void this.join()
+    }
+
+    private addMonths(value: Date, months: number): Date {
+        const result = new Date(value)
+        const day = result.getDate()
+        result.setDate(1)
+        result.setMonth(result.getMonth() + months)
+        result.setDate(Math.min(day, new Date(result.getFullYear(), result.getMonth() + 1, 0).getDate()))
+        return result
+    }
+
+    private addYears(value: Date, years: number): Date {
+        const result = new Date(value)
+        const month = result.getMonth()
+        const day = result.getDate()
+        result.setDate(1)
+        result.setFullYear(result.getFullYear() + years)
+        result.setMonth(month)
+        result.setDate(Math.min(day, new Date(result.getFullYear(), month + 1, 0).getDate()))
+        return result
     }
 
     async updatePreview(): Promise<void> {
@@ -192,8 +292,10 @@ export class PreJoinPageComponent implements AfterViewInit, OnDestroy {
         this.joining.set(true);
         this.error.set('');
         try {
-            const meeting = await firstValueFrom(this.api.getMeeting(this.roomId));
-            if (meeting.status !== 'scheduled' && meeting.status !== 'in_progress') throw new Error('This meeting has already ended.');
+            const meeting = await firstValueFrom(this.api.getMeetingAccess(this.roomId));
+            if (meeting.status === 'scheduled' && meeting.scheduledAt && Date.now() < new Date(meeting.scheduledAt).getTime()) {
+                return
+            }
             await this.router.navigate(['/call', this.roomId], {
                 queryParams: {
                     token: this.token,
@@ -205,10 +307,15 @@ export class PreJoinPageComponent implements AfterViewInit, OnDestroy {
                 }
             })
         } catch (error) {
-            this.error.set(error instanceof Error ? error.message : 'Could not verify the meeting.')
+            this.rejectAccess()
         } finally {
             this.joining.set(false)
         }
+    }
+
+    private rejectAccess(): void {
+        clearInterval(this.countdownTimer)
+        window.alert('It is not possible to access this meeting.')
     }
 
     back(): void {
@@ -216,6 +323,7 @@ export class PreJoinPageComponent implements AfterViewInit, OnDestroy {
     }
 
     ngOnDestroy(): void {
+        clearInterval(this.countdownTimer)
         this.previewRequest++
         this.clearPreview()
         this.previewStream()?.getTracks().forEach(track => track.stop())

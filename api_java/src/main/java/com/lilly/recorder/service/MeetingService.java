@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.PostConstruct;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -30,6 +31,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledFuture;
 
 @Service
 public class MeetingService {
@@ -44,6 +47,8 @@ public class MeetingService {
     private final MeetingEmailService meetingEmailService;
     private final ObjectMapper objectMapper;
     private final org.springframework.scheduling.TaskScheduler taskScheduler;
+    private final org.springframework.transaction.support.TransactionTemplate transactionTemplate;
+    private final ConcurrentHashMap<UUID, ScheduledFuture<?>> meetingEndTasks = new ConcurrentHashMap<>();
 
     public MeetingService(
             MeetingRepository meetingRepository,
@@ -54,7 +59,8 @@ public class MeetingService {
             SystemConfigurationProperties properties,
             MeetingEmailService meetingEmailService,
             ObjectMapper objectMapper,
-            org.springframework.scheduling.TaskScheduler taskScheduler
+            org.springframework.scheduling.TaskScheduler taskScheduler,
+            org.springframework.transaction.support.TransactionTemplate transactionTemplate
     ) {
         this.meetingRepository = meetingRepository;
         this.participantRepository = participantRepository;
@@ -65,6 +71,13 @@ public class MeetingService {
         this.meetingEmailService = meetingEmailService;
         this.objectMapper = objectMapper;
         this.taskScheduler = taskScheduler;
+        this.transactionTemplate = transactionTemplate;
+    }
+
+    @PostConstruct
+    void scheduleActiveMeetingEnds() {
+        meetingRepository.findAllByStatusAndDeletedFalse(MeetingStatus.IN_PROGRESS)
+                .forEach(this::scheduleMeetingEnd);
     }
 
     @Transactional
@@ -93,7 +106,11 @@ public class MeetingService {
             }
         }
         meeting.setRoomId(UUID.randomUUID());
-        meeting.setStatus(MeetingStatus.SCHEDULED);
+        boolean startsImmediately = meeting.getScheduledAt() == null || !meeting.getScheduledAt().isAfter(Instant.now());
+        meeting.setStatus(startsImmediately ? MeetingStatus.IN_PROGRESS : MeetingStatus.SCHEDULED);
+        if (startsImmediately) {
+            meeting.setStartedAt(Instant.now());
+        }
         meeting = meetingRepository.save(meeting);
         meetingRepository.flush();
 
@@ -110,23 +127,13 @@ public class MeetingService {
             participant.setToken(token);
             participant.setJoinLink(DEFAULT_JOIN_BASE_URL + "/room/" + meeting.getRoomId() + "?token=" + token);
         }
-        meeting.setStatus(MeetingStatus.IN_PROGRESS);
-        meeting.setStartedAt(Instant.now());
-
-        if (dto.getRecording().isEnabled()) {
-            String s3Key = "recordings/" + meeting.getRoomId() + "/" + java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss").withZone(java.time.ZoneOffset.UTC).format(Instant.now()) + ".mp4";
-            String egressId = liveKitService.startRecording(
-                    meeting.getRoomId().toString(),
-                    properties.getS3().getBucket(),
-                    s3Key,
-                    meeting.getRecordingWidth(),
-                    meeting.getRecordingHeight()
-            );
-            meeting.setLiveKitEgressId(egressId);
-            meeting.setRecordingS3Bucket(properties.getS3().getBucket());
-            meeting.setRecordingS3Key(s3Key);
+        if (startsImmediately && meeting.isRecordingEnabled()) {
+            startRecording(meeting);
         }
         meeting = meetingRepository.save(meeting);
+        if (startsImmediately) {
+            scheduleMeetingEnd(meeting);
+        }
         meetingEmailService.sendInvitations(meeting);
         return meeting;
     }
@@ -157,6 +164,9 @@ public class MeetingService {
         catch (JsonProcessingException exception) { throw new IllegalArgumentException("Unable to serialize metadata", exception); }
         if (!java.util.Objects.equals(meeting.getMetadata(), metadata)) { changes.add("description"); meeting.setMetadata(metadata); }
         Meeting saved = meetingRepository.save(meeting);
+        if (saved.getStatus() == MeetingStatus.IN_PROGRESS) {
+            scheduleMeetingEnd(saved);
+        }
         if (!changes.isEmpty()) meetingEmailService.sendMeetingUpdate(saved, changes);
         return saved;
     }
@@ -207,6 +217,14 @@ public class MeetingService {
         if (meeting.getStatus() != MeetingStatus.IN_PROGRESS) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Meeting is not in progress");
         }
+        return endMeetingInternal(meeting, roomId, reason, notes);
+    }
+
+    private Meeting endMeetingInternal(Meeting meeting, UUID roomId, EndMeetingReason reason, String notes) {
+        ScheduledFuture<?> task = meetingEndTasks.remove(roomId);
+        if (task != null && !task.isDone()) {
+            task.cancel(false);
+        }
         setNotes(meeting, notes);
 
         for (Participant participant : meeting.getParticipants()) {
@@ -240,6 +258,28 @@ public class MeetingService {
         Meeting saved = meetingRepository.save(meeting);
         scheduleNotesEmail(saved);
         return saved;
+    }
+
+    private void scheduleMeetingEnd(Meeting meeting) {
+        if (meeting.getStartedAt() == null || meeting.getStatus() != MeetingStatus.IN_PROGRESS) {
+            return;
+        }
+        UUID roomId = meeting.getRoomId();
+        ScheduledFuture<?> previousTask = meetingEndTasks.remove(roomId);
+        if (previousTask != null) {
+            previousTask.cancel(false);
+        }
+        Instant endAt = meeting.getStartedAt().plusSeconds(meeting.getDurationLimitMinutes() * 60L);
+        ScheduledFuture<?> task = taskScheduler.schedule(() -> transactionTemplate.executeWithoutResult(status -> {
+            Meeting current = meetingRepository.findByRoomIdAndDeletedFalse(roomId).orElse(null);
+            if (current == null || current.getStatus() != MeetingStatus.IN_PROGRESS) {
+                return;
+            }
+            endMeetingInternal(current, roomId, EndMeetingReason.TIMEOUT, null);
+        }), endAt);
+        if (task != null) {
+            meetingEndTasks.put(roomId, task);
+        }
     }
 
     private void scheduleNotesEmail(Meeting meeting) {
@@ -309,12 +349,50 @@ public class MeetingService {
         }
         UUID roomId = UUID.fromString(roomName);
         meetingRepository.findByRoomIdAndDeletedFalse(roomId).ifPresent(meeting -> {
-            if (meeting.getStatus() == MeetingStatus.SCHEDULED) {
+            if (meeting.getStatus() == MeetingStatus.SCHEDULED
+                    && (meeting.getScheduledAt() == null || !Instant.now().isBefore(meeting.getScheduledAt()))) {
                 meeting.setStatus(MeetingStatus.IN_PROGRESS);
                 meeting.setStartedAt(Instant.now());
+                if (meeting.isRecordingEnabled()) {
+                    startRecording(meeting);
+                }
                 meetingRepository.save(meeting);
+                scheduleMeetingEnd(meeting);
             }
         });
+    }
+
+    @Transactional(readOnly = true)
+    public Meeting validateJoinAccess(UUID roomId) {
+        Meeting meeting = getByRoomId(roomId);
+        Instant now = Instant.now();
+        Instant start = meeting.getScheduledAt() != null ? meeting.getScheduledAt() : meeting.getStartedAt();
+        if (start == null) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Meeting is not available");
+        }
+
+        Instant end = start.plusSeconds(meeting.getDurationLimitMinutes() * 60L);
+        boolean withinMeetingWindow = !now.isBefore(start) && now.isBefore(end);
+        boolean withinEarlyJoinWindow = !now.isBefore(start.minusSeconds(15 * 60L)) && now.isBefore(start);
+        boolean statusAllowsJoin = meeting.getStatus() == MeetingStatus.IN_PROGRESS || meeting.getStatus() == MeetingStatus.SCHEDULED;
+        if (!statusAllowsJoin || (!withinMeetingWindow && !withinEarlyJoinWindow)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Meeting is not available");
+        }
+        return meeting;
+    }
+
+    private void startRecording(Meeting meeting) {
+        String s3Key = "recordings/" + meeting.getRoomId() + "/" + java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss").withZone(java.time.ZoneOffset.UTC).format(Instant.now()) + ".mp4";
+        String egressId = liveKitService.startRecording(
+                meeting.getRoomId().toString(),
+                properties.getS3().getBucket(),
+                s3Key,
+                meeting.getRecordingWidth(),
+                meeting.getRecordingHeight()
+        );
+        meeting.setLiveKitEgressId(egressId);
+        meeting.setRecordingS3Bucket(properties.getS3().getBucket());
+        meeting.setRecordingS3Key(s3Key);
     }
 
     @Transactional

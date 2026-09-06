@@ -34,8 +34,7 @@ public class MeetingMapper {
         meeting.setRecordingFormat(dto.getRecording().getFormat());
         meeting.setRecordingWidth(dto.getRecording().getWidth());
         meeting.setRecordingHeight(dto.getRecording().getHeight());
-        meeting.setStatus(MeetingStatus.IN_PROGRESS);
-        meeting.setStartedAt(java.time.Instant.now());
+        meeting.setStatus(MeetingStatus.SCHEDULED);
         if (dto.getMetadata() != null) {
             try {
                 meeting.setMetadata(objectMapper.writeValueAsString(dto.getMetadata()));

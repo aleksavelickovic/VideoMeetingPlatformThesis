@@ -30,6 +30,12 @@ import {ParticipantTileComponent} from '../shared/participant-tile.component'
                         <button class="btn-primary mt-5" (click)="goHome()">Go back</button>
                     </div>
                 </main>
+            } @else if (waiting()) {
+                <main class="grid flex-1 place-items-center p-6 text-center">
+                    <div><p class="text-lg font-semibold text-slate-900">Meeting has not started yet</p>
+                        <p class="mt-2 text-sm text-muted">Starting in {{ countdownText() }}</p>
+                    </div>
+                </main>
             } @else {
                 <div class="flex min-h-0 flex-1 flex-col">
                     <div class="flex items-center justify-between border-b border-line bg-white px-5 py-3">
@@ -37,8 +43,10 @@ import {ParticipantTileComponent} from '../shared/participant-tile.component'
                         <div class="flex items-center gap-4"><span
                                 class="rounded border border-danger/30 bg-danger/10 px-2 py-1 text-[11px] font-bold text-danger"
                                 [class.invisible]="!livekit.recording()">● REC</span><span
-                                class="font-mono text-sm text-slate-600"
-                                [class.text-danger]="limitSeconds() && elapsed() >= limitSeconds()">{{ duration() }} @if (limitSeconds()) {
+                                class="font-mono text-sm"
+                                [class.text-slate-600]="limitSeconds() === 0 || remainingSeconds() > 300"
+                                [class.text-amber]="remainingSeconds() > 60 && remainingSeconds() <= 300"
+                                [class.text-danger]="limitSeconds() > 0 && remainingSeconds() <= 60">{{ duration() }} @if (limitSeconds()) {
                             / {{ limitDuration() }}
                         }</span><span class="text-xs text-muted">{{ participantCount() }} participants</span></div>
                     </div>
@@ -133,6 +141,8 @@ export class InCallPageComponent implements OnInit, OnDestroy {
     readonly token = this.route.snapshot.queryParamMap.get('token');
     readonly identity = readJoinIdentity(this.token)
     readonly title = signal('');
+    readonly waiting = signal(false);
+    readonly countdownSeconds = signal(0);
     readonly elapsed = signal(0);
     readonly limitSeconds = signal(0);
     readonly muted = signal(false);
@@ -146,8 +156,10 @@ export class InCallPageComponent implements OnInit, OnDestroy {
     readonly participantCount = computed(() => this.allParticipants().length)
     readonly duration = computed(() => formatDuration(this.elapsed()));
     readonly limitDuration = computed(() => formatDuration(this.limitSeconds()));
+    readonly remainingSeconds = computed(() => Math.max(0, this.limitSeconds() - this.elapsed()));
     readonly gridColumns = computed(() => `repeat(${this.participantCount() <= 1 ? 1 : this.participantCount() <= 4 ? 2 : this.participantCount() <= 9 ? 3 : 4}, minmax(0, 1fr))`)
     private timer?: ReturnType<typeof setInterval>;
+    private countdownTimer?: ReturnType<typeof setInterval>;
     private leaving = false
     protected readonly Mic = Mic;
     protected readonly MicOff = MicOff;
@@ -164,21 +176,63 @@ export class InCallPageComponent implements OnInit, OnDestroy {
 
     async ngOnInit(): Promise<void> {
         if (!this.token) return
-        this.api.getMeeting(this.roomId).subscribe({
-            next: meeting => {
-                this.title.set(meeting.title);
-                this.limitSeconds.set(meeting.durationLimitMinutes * 60);
-                const started = meeting.startedAt ? new Date(meeting.startedAt).getTime() : Date.now();
-                this.elapsed.set(Math.max(0, Math.floor((Date.now() - started) / 1000)));
-                this.timer = setInterval(() => this.elapsed.update(value => value + 1), 1000)
-            }
-        })
+        await this.connectWhenAllowed()
+    }
+
+    private async connectWhenAllowed(): Promise<void> {
+        const token = this.token
+        if (!token) return
+        let meeting;
+        try {
+            meeting = await firstValueFrom(this.api.getMeetingAccess(this.roomId))
+        } catch {
+            this.rejectAccess()
+            return
+        }
+        this.title.set(meeting.title)
+        this.limitSeconds.set(meeting.durationLimitMinutes * 60)
+        const start = new Date(meeting.scheduledAt || meeting.startedAt || Date.now()).getTime()
+        if (meeting.status === 'scheduled' && Date.now() < start) {
+            this.startCountdown(Math.ceil((start - Date.now()) / 1000))
+            return
+        }
+        const started = meeting.startedAt ? new Date(meeting.startedAt).getTime() : Date.now();
+        this.elapsed.set(Math.max(0, Math.floor((Date.now() - started) / 1000)));
+        this.timer = setInterval(() => this.elapsed.update(value => value + 1), 1000)
         const cameraEnabled = this.route.snapshot.queryParamMap.get('cameraEnabled') !== 'false'
         const microphoneEnabled = this.route.snapshot.queryParamMap.get('microphoneEnabled') !== 'false'
         this.cameraOff.set(!cameraEnabled)
         this.muted.set(!microphoneEnabled)
-        await this.livekit.connect(this.token, this.route.snapshot.queryParamMap.get('name') || this.identity.name, this.route.snapshot.queryParamMap.get('camera') || undefined, this.route.snapshot.queryParamMap.get('microphone') || undefined, cameraEnabled, microphoneEnabled)
+        await this.livekit.connect(token, this.route.snapshot.queryParamMap.get('name') || this.identity.name, this.route.snapshot.queryParamMap.get('camera') || undefined, this.route.snapshot.queryParamMap.get('microphone') || undefined, cameraEnabled, microphoneEnabled)
         this.livekit.room()?.on(RoomEvent.Disconnected, () => void this.finish())
+    }
+
+    private startCountdown(seconds: number): void {
+        clearInterval(this.countdownTimer)
+        this.waiting.set(true)
+        this.countdownSeconds.set(seconds)
+        this.countdownTimer = setInterval(() => {
+            const value = this.countdownSeconds() - 1
+            this.countdownSeconds.set(Math.max(0, value))
+            if (value <= 0) {
+                clearInterval(this.countdownTimer)
+                this.waiting.set(false)
+                void this.connectWhenAllowed()
+            }
+        }, 1000)
+    }
+
+    countdownText(): string {
+        const total = this.countdownSeconds()
+        const hours = Math.floor(total / 3600)
+        const minutes = Math.floor((total % 3600) / 60)
+        const seconds = total % 60
+        return hours > 0 ? `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}` : `${minutes}:${String(seconds).padStart(2, '0')}`
+    }
+
+    private rejectAccess(): void {
+        window.alert('It is not possible to access this meeting.')
+        // void this.router.navigateByUrl('/')
     }
 
     async toggleMute(): Promise<void> {
@@ -273,6 +327,7 @@ export class InCallPageComponent implements OnInit, OnDestroy {
 
     ngOnDestroy(): void {
         clearInterval(this.timer);
+        clearInterval(this.countdownTimer);
         if (!this.leaving) this.livekit.disconnect()
     }
 }
