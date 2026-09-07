@@ -15,7 +15,7 @@ Vizuelno ulepsati meeting edit stranicu.*
 Edit lozinke preko mail-a, NE otvaranjem Keycloack konzole!*
 Additional metadata se dodaje u sastanku (izbaciti iz kreiranja sastanka), omoguciti hostu da tokom sastanka ima popup za beleske. po zavrsetku se te beleske salju sa summary svima na mejl*
 Promeni app i IDE u light theme za screenshots*
-U invitation mejlu koji stize hostu, naglasiti "you have been invited to join this meeting AS A HOST"
+U invitation mejlu koji stize hostu, naglasiti "you have been invited to join this meeting AS A HOST"/
 Landing page.*
 Testirati sve funkcionalnosti!
 Potpuni rebrand iz Lilly/Sessions/VMP u Connecta!
