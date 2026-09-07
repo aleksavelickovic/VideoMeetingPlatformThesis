@@ -92,7 +92,7 @@ import {ParticipantTileComponent} from '../shared/participant-tile.component'
                                     <span class="text-xs font-semibold">Notes</span>
                                 </button>
                                 <button class="rounded-xl border border-danger/40 bg-danger/10 px-4 py-3 text-xs font-semibold text-danger shadow-md shadow-red-100 transition hover:-translate-y-px hover:bg-danger/20"
-                                        (click)="endMeeting()" title="End meeting for everyone">
+                                        (click)="endMeetingConfirmationOpen.set(true)" title="End meeting for everyone">
                                     End meeting
                                 </button>
                             }
@@ -125,6 +125,16 @@ import {ParticipantTileComponent} from '../shared/participant-tile.component'
                         <div class="mt-4 flex justify-end"><button class="rounded-lg border border-danger/40 bg-danger/10 px-4 py-2 text-sm font-semibold text-danger transition hover:bg-danger/20" (click)="clearNotes()">Clear</button></div>
                     </section>
                 </div>
+                <div class="fixed inset-0 z-40 grid place-items-center bg-slate-950/40 p-4 backdrop-blur-sm" [class.hidden]="!endMeetingConfirmationOpen()" (click)="closeEndMeetingConfirmation($event)">
+                    <section class="w-full max-w-md rounded-2xl border border-line bg-white p-6 shadow-2xl" (click)="$event.stopPropagation()">
+                        <h2 class="text-lg font-semibold text-slate-900">End meeting for everyone?</h2>
+                        <p class="mt-2 text-sm text-muted">This will end the meeting for all participants. This action cannot be undone.</p>
+                        <div class="mt-6 flex justify-end gap-3">
+                            <button class="btn-secondary" (click)="endMeetingConfirmationOpen.set(false)">Cancel</button>
+                            <button class="rounded-lg bg-danger px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700" (click)="confirmEndMeeting()">End meeting</button>
+                        </div>
+                    </section>
+                </div>
             }
         </div>
     `,
@@ -154,6 +164,7 @@ export class InCallPageComponent implements OnInit, OnDestroy {
     readonly cameraOff = signal(false);
     readonly sharing = signal(false)
     readonly notesOpen = signal(false)
+    readonly endMeetingConfirmationOpen = signal(false)
     readonly notes = signal('')
     readonly notesFormatting = signal({bold: false, italic: false, underline: false})
     @ViewChild('notesEditor') private notesEditor?: ElementRef<HTMLElement>
@@ -289,6 +300,11 @@ export class InCallPageComponent implements OnInit, OnDestroy {
         await this.finish()
     }
 
+    async confirmEndMeeting(): Promise<void> {
+        this.endMeetingConfirmationOpen.set(false)
+        await this.endMeeting()
+    }
+
     formatNotes(event: MouseEvent, command: string): void {
         event.preventDefault();
         document.execCommand(command, false);
@@ -318,6 +334,10 @@ export class InCallPageComponent implements OnInit, OnDestroy {
 
     closeNotes(event: MouseEvent): void {
         if (event.target === event.currentTarget) this.notesOpen.set(false)
+    }
+
+    closeEndMeetingConfirmation(event: MouseEvent): void {
+        if (event.target === event.currentTarget) this.endMeetingConfirmationOpen.set(false)
     }
 
     clearNotes(): void {

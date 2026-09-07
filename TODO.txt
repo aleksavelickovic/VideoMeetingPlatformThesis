@@ -10,7 +10,8 @@ Editovanje sastanka samo za ulogovanog korisnika (ako nije poceo ili se niko nij
 
 Izlazak host-a iz sastanka ne zavrsava sastanak, vec host ima posebno end meeting dugme.*
 Keyboard shortcuts za kameru i mikrofon.*
-Kada se otvori datetimepicker, sati i minuti su uvek 00, resiti ovaj bug
+Kada se otvori datetimepicker, sati i minuti su uvek 00, resiti ovaj bug.
+Vizuelno ulepsati meeting edit stranicu.
 Edit lozinke preko mail-a, NE otvaranjem Keycloack konzole!*
 Additional metadata se dodaje u sastanku (izbaciti iz kreiranja sastanka), omoguciti hostu da tokom sastanka ima popup za beleske. po zavrsetku se te beleske salju sa summary svima na mejl*
 Promeni app i IDE u light theme za screenshots*
