@@ -64,14 +64,14 @@ type CalendarCell = number | null
                             <select id="meeting-hour" class="picker-select" [value]="hour"
                                     [disabled]="!selectedDate" (change)="selectHour($event)">
                                 @for (item of hours; track item) {
-                                    <option [value]="item" [disabled]="isHourDisabled(item)">{{ item }}</option>
+                                    <option [value]="item" [selected]="item === hour" [disabled]="isHourDisabled(item)">{{ item }}</option>
                                 }
                             </select>
                             <label class="sr-only" for="meeting-minute">Minute</label>
                             <select id="meeting-minute" class="picker-select" [value]="minute"
                                     [disabled]="!selectedDate" (change)="selectMinute($event)">
                                 @for (item of minutes; track item) {
-                                    <option [value]="item" [disabled]="isMinuteDisabled(item)">{{ item }}</option>
+                                    <option [value]="item" [selected]="item === minute" [disabled]="isMinuteDisabled(item)">{{ item }}</option>
                                 }
                             </select>
                         </div>
@@ -133,7 +133,10 @@ export class DateTimePickerComponent implements ControlValueAccessor {
         if (this.open) {
             this.onTouched()
             if (this.selectedDate) this.viewDate = this.startOfMonth(this.selectedDate)
-            else this.viewDate = this.startOfMonth(new Date())
+            else {
+                this.viewDate = this.startOfMonth(new Date())
+                this.setCurrentTime()
+            }
         }
     }
 
@@ -218,6 +221,7 @@ export class DateTimePickerComponent implements ControlValueAccessor {
     writeValue(value: string | null): void {
         if (!value) {
             this.selectedDate = null
+            this.setCurrentTime()
             return
         }
         const parsed = new Date(value)
@@ -240,6 +244,12 @@ export class DateTimePickerComponent implements ControlValueAccessor {
             this.minute = this.pad(Math.min(59, now.getMinutes() + 1))
             if (Number(this.minute) === 59 && now.getMinutes() === 59) this.hour = this.pad(now.getHours() + 1)
         }
+    }
+
+    private setCurrentTime(): void {
+        const now = new Date()
+        this.hour = this.pad(now.getHours())
+        this.minute = this.pad(now.getMinutes())
     }
 
     private toLocalValue(): string {
