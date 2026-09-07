@@ -319,7 +319,7 @@ export class PreJoinPageComponent implements AfterViewInit, OnDestroy {
     }
 
     back(): void {
-        this.router.navigateByUrl('/')
+        this.router.navigateByUrl('/create-meeting')
     }
 
     ngOnDestroy(): void {

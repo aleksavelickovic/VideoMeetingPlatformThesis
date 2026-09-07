@@ -78,6 +78,10 @@ body {
     @apply grid size-8 place-items-center rounded-lg border border-line bg-field text-muted shadow-sm transition hover:-translate-y-px hover:border-brand hover:bg-blue-50 hover:text-brand hover:shadow-md;
 }
 
+.toolbar-separator {
+    @apply h-5 w-px bg-line;
+}
+
 ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
 ::view-transition-new(root) {
     animation: theme-reveal .6s ease-out;
@@ -211,4 +215,176 @@ button:disabled {
 
 .btn-danger {
     @apply inline-flex items-center justify-center gap-2 rounded-lg bg-danger px-4 py-3 text-sm font-semibold text-white shadow-md shadow-red-200/70 transition hover:-translate-y-px hover:bg-red-700 hover:shadow-lg hover:shadow-red-200/80 disabled:opacity-50;
+}
+
+.landing-page {
+    background:
+        radial-gradient(circle at 50% 44%, rgba(219, 234, 254, .82), transparent 32rem),
+        linear-gradient(135deg, rgb(var(--color-page)) 0%, rgb(var(--color-subtle)) 100%);
+}
+
+.landing-main {
+    overflow: hidden;
+}
+
+.connection-field {
+    position: absolute;
+    inset: -14%;
+    z-index: 0;
+    width: 128%;
+    height: 128%;
+    opacity: .72;
+    pointer-events: none;
+}
+
+.connection-line {
+    fill: none;
+    stroke: rgb(var(--color-brand) / .32);
+    stroke-width: .16;
+    stroke-linecap: round;
+    stroke-dasharray: .16 .84;
+    stroke-dashoffset: 1;
+    opacity: 0;
+    animation: connection-flow 11s cubic-bezier(.4, 0, .2, 1) infinite;
+}
+
+:root:not(.theme-dark) .connection-field { opacity: .94; }
+
+:root:not(.theme-dark) .connection-line {
+    stroke: rgb(29 78 216 / .62);
+    stroke-width: .21;
+}
+
+.connection-line:nth-child(2) { animation-delay: -3.2s; animation-duration: 13s; }
+.connection-line:nth-child(3) { animation-delay: -7.8s; animation-duration: 15s; }
+.connection-line:nth-child(4) { animation-delay: -5.4s; animation-duration: 12s; }
+.connection-line:nth-child(5) { animation-delay: -9.1s; animation-duration: 16s; }
+.connection-line:nth-child(6) { animation-delay: -1.7s; animation-duration: 14s; }
+.connection-line:nth-child(7) { animation-delay: -10.4s; animation-duration: 17s; }
+.connection-line:nth-child(8) { animation-delay: -6.3s; animation-duration: 12.5s; }
+.connection-line:nth-child(9) { animation-delay: -4.8s; animation-duration: 14.5s; }
+.connection-line:nth-child(10) { animation-delay: -11.6s; animation-duration: 18s; }
+.connection-line:nth-child(11) { animation-delay: -2.6s; animation-duration: 13.5s; }
+.connection-line:nth-child(12) { animation-delay: -8.7s; animation-duration: 16.5s; }
+.connection-line:nth-child(13) { animation-delay: -12.8s; animation-duration: 19s; }
+.connection-line:nth-child(14) { animation-delay: -6.9s; animation-duration: 15.5s; }
+.connection-line:nth-child(15) { animation-delay: -14.2s; animation-duration: 20s; }
+.connection-line:nth-child(16) { animation-delay: -9.8s; animation-duration: 17.5s; }
+.connection-line:nth-child(17) { animation-delay: -15.4s; animation-duration: 18.5s; }
+.connection-line:nth-child(18) { animation-delay: -4.1s; animation-duration: 21s; }
+.connection-line:nth-child(19) { animation-delay: -13.3s; animation-duration: 16.8s; }
+.connection-line:nth-child(20) { animation-delay: -7.2s; animation-duration: 19.5s; }
+.connection-line:nth-child(21) { animation-delay: -17.1s; animation-duration: 22s; }
+.connection-line:nth-child(22) { animation-delay: -2.1s; animation-duration: 18.2s; }
+.connection-line:nth-child(23) { animation-delay: -11.1s; animation-duration: 20.5s; }
+.connection-line:nth-child(24) { animation-delay: -5.8s; animation-duration: 23s; }
+.connection-line:nth-child(25) { animation-delay: -18.6s; animation-duration: 17.2s; }
+.connection-line:nth-child(26) { animation-delay: -8.2s; animation-duration: 21.5s; }
+.connection-line:nth-child(27) { animation-delay: -16.3s; animation-duration: 19.2s; }
+.connection-line:nth-child(28) { animation-delay: -3.7s; animation-duration: 22.5s; }
+.connection-line:nth-child(29) { animation-delay: -12.2s; animation-duration: 18.8s; }
+.connection-line:nth-child(30) { animation-delay: -20.1s; animation-duration: 24s; }
+.connection-line:nth-child(31) { animation-delay: -6.6s; animation-duration: 20.8s; }
+.connection-line:nth-child(32) { animation-delay: -14.7s; animation-duration: 23.5s; }
+
+@keyframes connection-flow {
+    0%, 8% { stroke-dashoffset: 1; opacity: 0; }
+    20% { opacity: .9; }
+    68% { stroke-dashoffset: -.55; opacity: .65; }
+    88%, 100% { stroke-dashoffset: -1.1; opacity: 0; }
+}
+
+.landing-glow {
+    position: absolute;
+    z-index: 0;
+    width: 15rem;
+    height: 15rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, .66);
+    filter: blur(8px) saturate(120%);
+    opacity: .84;
+    pointer-events: none;
+    box-shadow: 0 0 42px rgba(96, 165, 250, .28), inset 10px 12px 22px rgba(255, 255, 255, .42), inset -18px -16px 28px rgba(79, 70, 229, .12);
+    animation: landing-orb-drift 14s ease-in-out infinite alternate;
+}
+
+.landing-glow::after {
+    position: absolute;
+    top: 14%;
+    left: 18%;
+    width: 30%;
+    height: 16%;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .74);
+    content: '';
+    filter: blur(10px);
+    transform: rotate(-28deg);
+}
+
+.landing-glow-one {
+    top: 7%;
+    left: 5%;
+    background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, .88) 0%, rgba(147, 197, 253, .8) 24%, rgba(96, 165, 250, .42) 58%, rgba(129, 140, 248, .06) 78%, transparent 100%);
+}
+
+.landing-glow-two {
+    right: 5%;
+    bottom: 3%;
+    animation-delay: -6s;
+    background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, .84) 0%, rgba(196, 181, 253, .8) 24%, rgba(167, 139, 250, .42) 58%, rgba(244, 114, 182, .08) 78%, transparent 100%);
+}
+
+@keyframes landing-orb-drift {
+    from { transform: translate3d(-8px, 5px, 0) scale(.96); }
+    to { transform: translate3d(10px, -8px, 0) scale(1.04); }
+}
+
+.landing-card {
+    border: 1px solid rgba(255, 255, 255, .66);
+    background: linear-gradient(135deg, rgba(255, 255, 255, .56), rgba(255, 255, 255, .2));
+    box-shadow: 0 30px 80px rgba(30, 64, 120, .18), inset 0 1px 0 rgba(255, 255, 255, .8);
+    backdrop-filter: blur(28px) saturate(145%);
+}
+
+.landing-secondary-button {
+    @apply inline-flex items-center justify-center rounded-xl border border-line bg-white/45 px-5 py-2.5 text-sm font-medium text-slate-600 shadow-sm transition hover:-translate-y-px hover:border-brand hover:bg-white/70 hover:text-brand hover:shadow-md;
+}
+
+.theme-dark .landing-page {
+    background:
+        radial-gradient(circle at 50% 44%, rgba(30, 64, 120, .55), transparent 32rem),
+        linear-gradient(135deg, rgb(var(--color-page)) 0%, #172338 100%);
+}
+
+.theme-dark .connection-line { stroke: rgb(var(--color-brand) / .4); }
+.theme-dark .landing-glow {
+    border-color: rgba(191, 219, 254, .24);
+    box-shadow: 0 0 52px rgba(59, 130, 246, .3), inset 10px 12px 22px rgba(255, 255, 255, .18), inset -18px -16px 28px rgba(124, 58, 237, .2);
+}
+
+.theme-dark .landing-glow-one {
+    background: radial-gradient(circle at 35% 30%, rgba(191, 219, 254, .72) 0%, rgba(37, 99, 235, .62) 24%, rgba(30, 64, 175, .38) 58%, rgba(30, 64, 120, .06) 78%, transparent 100%);
+}
+
+.theme-dark .landing-glow-two {
+    background: radial-gradient(circle at 35% 30%, rgba(221, 214, 254, .68) 0%, rgba(124, 58, 237, .62) 24%, rgba(76, 29, 149, .38) 58%, rgba(88, 28, 135, .08) 78%, transparent 100%);
+}
+.theme-dark .landing-card {
+    border-color: rgba(148, 163, 184, .24);
+    background: linear-gradient(135deg, rgba(30, 49, 82, .68), rgba(15, 23, 42, .42));
+    box-shadow: 0 30px 80px rgba(2, 6, 23, .42), inset 0 1px 0 rgba(255, 255, 255, .1);
+}
+
+.theme-dark .landing-card .text-slate-900 { color: #f1f5fb; }
+.theme-dark .landing-card .text-slate-600 { color: #c4d0e2; }
+.theme-dark .landing-card .text-slate-500 { color: #aab9ce; }
+.theme-dark .landing-secondary-button {
+    background: rgba(23, 35, 56, .55);
+    color: #c4d0e2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .connection-line { animation: none; opacity: .28; stroke-dashoffset: 0; }
+    .landing-glow { animation: none; }
+    .landing-secondary-button, .landing-card .btn-primary { transition: none; }
 }

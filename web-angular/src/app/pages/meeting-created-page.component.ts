@@ -48,13 +48,13 @@ import {SessionsHeaderComponent} from '../shared/sessions-header.component'
                             </button>
                         </article>
                     }</section>
-                    <p class="mt-3 h-5 text-center text-xs text-success">{{ copied }}</p><a routerLink="/"
+                    <p class="mt-3 h-5 text-center text-xs text-success">{{ copied }}</p><a routerLink="/create-meeting"
                                                                                             class="btn-secondary mt-3 w-full">Create
                     Another Meeting</a>
                 </main>
             } @else {
                 <main class="grid min-h-[calc(100vh-51px)] place-items-center p-6 text-center">
-                    <div><p class="text-lg text-slate-900">No meeting result is available.</p><a routerLink="/"
+                    <div><p class="text-lg text-slate-900">No meeting result is available.</p><a routerLink="/create-meeting"
                                                                                              class="btn-primary mt-5">Create
                         a meeting</a></div>
                 </main>

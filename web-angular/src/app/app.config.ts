@@ -7,7 +7,7 @@ import {apiAuthInterceptor} from './core/api-auth.interceptor'
 @Injectable()
 export class GlobalErrorHandler implements ErrorHandler {
     handleError(error: unknown): void {
-        console.error('[Sessions]', error)
+        console.error('[Connecta]', error)
     }
 }
 

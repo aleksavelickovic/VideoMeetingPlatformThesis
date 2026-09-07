@@ -59,13 +59,13 @@ import {SessionsHeaderComponent} from '../shared/sessions-header.component'
                                         {{ participant.name }} recording</a>
                                 }
                             }
-                        }<a routerLink="/" class="btn-primary">
+                        }<a routerLink="/create-meeting" class="btn-primary">
                             <lucide-icon [img]="Plus" class="size-4"/>
                             New Meeting</a></div>
                 </main>
             } @else {
                 <main class="grid min-h-[calc(100vh-51px)] place-items-center p-6 text-center">
-                    <div><p class="text-lg text-slate-900">No call summary is available.</p><a routerLink="/"
+                    <div><p class="text-lg text-slate-900">No call summary is available.</p><a routerLink="/create-meeting"
                                                                                            class="btn-primary mt-5">New
                         Meeting</a></div>
                 </main>
