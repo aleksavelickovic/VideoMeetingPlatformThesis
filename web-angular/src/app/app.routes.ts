@@ -7,10 +7,12 @@ import {PostCallPageComponent} from './pages/post-call-page.component'
 import {ParticipantEgressTemplateComponent} from './pages/participant-egress-template.component'
 import {ProfilePageComponent} from './pages/profile-page.component'
 import {MyMeetingsPageComponent} from './pages/my-meetings-page.component'
+import {LandingPageComponent} from './pages/landing-page.component'
 
 export const routes: Routes = [
     {path: 'egress/participant', component: ParticipantEgressTemplateComponent},
-    {path: '', component: CreateMeetingPageComponent},
+    {path: '', component: LandingPageComponent},
+    {path: 'create-meeting', component: CreateMeetingPageComponent},
     {path: 'meeting-created', component: MeetingCreatedPageComponent},
     {path: 'room/:roomId', component: PreJoinPageComponent},
     {path: 'call/:roomId', component: InCallPageComponent},

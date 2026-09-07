@@ -364,7 +364,7 @@ export class InCallPageComponent implements OnInit, OnDestroy {
     }
 
     goHome(): void {
-        this.router.navigateByUrl('/')
+        this.router.navigateByUrl('/create-meeting')
     }
 
     ngOnDestroy(): void {
