@@ -1,4 +1,4 @@
-import {Component, ElementRef, OnDestroy, OnInit, ViewChild, computed, inject, signal} from '@angular/core'
+import {Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild, computed, inject, signal} from '@angular/core'
 import {ActivatedRoute, Router} from '@angular/router'
 import {firstValueFrom} from 'rxjs'
 import {Bold, Italic, List, ListOrdered, LucideAngularModule, Mic, MicOff, MonitorUp, PhoneOff, Underline, Video, VideoOff, X} from 'lucide-angular'
@@ -86,9 +86,14 @@ import {ParticipantTileComponent} from '../shared/participant-tile.component'
                                 <lucide-icon [img]="PhoneOff" class="size-5"/>
                             </button>
                             @if (identity.isHost) {
+                                <span class="mx-1 h-8 w-px bg-line"></span>
                                 <button class="toolbar" [class.border-brand]="notesOpen()" [class.text-brand]="notesOpen()"
                                         (click)="notesOpen.update(value => !value)" title="Meeting notes">
                                     <span class="text-xs font-semibold">Notes</span>
+                                </button>
+                                <button class="rounded-xl border border-danger/40 bg-danger/10 px-4 py-3 text-xs font-semibold text-danger shadow-md shadow-red-100 transition hover:-translate-y-px hover:bg-danger/20"
+                                        (click)="endMeeting()" title="End meeting for everyone">
+                                    End meeting
                                 </button>
                             }
                         </div>
@@ -256,12 +261,29 @@ export class InCallPageComponent implements OnInit, OnDestroy {
         this.sharing.update(value => !value)
     }
 
+    @HostListener('window:keydown', ['$event'])
+    handleKeyboardShortcut(event: KeyboardEvent): void {
+        const target = event.target as HTMLElement | null
+        if (target?.closest('input, textarea, select, [contenteditable="true"]')) return
+        if (!event.shiftKey || event.ctrlKey || event.altKey || event.metaKey) return
+        if (event.key.toLowerCase() === 'c') {
+            event.preventDefault()
+            void this.toggleCamera()
+        } else if (event.key.toLowerCase() === 'v') {
+            event.preventDefault()
+            void this.toggleMute()
+        }
+    }
+
     async endCall(): Promise<void> {
-        if (this.identity.isHost) {
-            try {
-                await firstValueFrom(this.api.endMeeting(this.roomId, this.notes() || null))
-            } catch {
-            }
+        this.livekit.disconnect();
+        await this.finish()
+    }
+
+    async endMeeting(): Promise<void> {
+        try {
+            await firstValueFrom(this.api.endMeeting(this.roomId, this.notes() || null))
+        } catch {
         }
         this.livekit.disconnect();
         await this.finish()
