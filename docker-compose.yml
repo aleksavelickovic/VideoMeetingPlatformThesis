@@ -51,7 +51,7 @@ services:
       keycloak:
         condition: service_started
     networks:
-      - lilly-net
+      - vmp-net
     restart: unless-stopped
 
   web-angular:
@@ -71,7 +71,7 @@ services:
     depends_on:
       - api
     networks:
-      - lilly-net
+      - vmp-net
     restart: unless-stopped
 
   livekit:
@@ -89,7 +89,7 @@ services:
       redis:
         condition: service_healthy
     networks:
-      - lilly-net
+      - vmp-net
     restart: unless-stopped
 
   egress:
@@ -107,7 +107,7 @@ services:
       - redis
       - minio
     networks:
-      - lilly-net
+      - vmp-net
     restart: unless-stopped
 
   postgres:
@@ -127,7 +127,7 @@ services:
       timeout: 5s
       retries: 10
     networks:
-      - lilly-net
+      - vmp-net
     restart: unless-stopped
 
   redis:
@@ -144,7 +144,7 @@ services:
       timeout: 3s
       retries: 10
     networks:
-      - lilly-net
+      - vmp-net
     restart: unless-stopped
 
   minio:
@@ -160,7 +160,7 @@ services:
     volumes:
       - minio_data:/data
     networks:
-      - lilly-net
+      - vmp-net
     restart: unless-stopped
 
   minio-init:
@@ -178,7 +178,7 @@ services:
         exit 0;
       "
     networks:
-      - lilly-net
+      - vmp-net
 
   mailpit:
     image: axllent/mailpit:latest
@@ -186,7 +186,7 @@ services:
       - "1025:1025"
       - "8025:8025"
     networks:
-      - lilly-net
+      - vmp-net
     restart: unless-stopped
 
   keycloak:
@@ -203,11 +203,11 @@ services:
       - ./keycloak:/opt/keycloak/data/import:ro
       - ./keycloak/themes:/opt/keycloak/themes:ro
     networks:
-      - lilly-net
+      - vmp-net
     restart: unless-stopped
 
 networks:
-  lilly-net:
+  vmp-net:
     driver: bridge
 
 volumes:
