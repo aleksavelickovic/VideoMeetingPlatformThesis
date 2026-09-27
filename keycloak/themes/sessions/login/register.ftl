@@ -41,7 +41,10 @@
                 <h2>${msg("identity-provider-login-label")}</h2>
                 <ul class="${properties.kcFormSocialAccountListClass!}">
                     <#list social.providers as p>
-                        <li><a data-once-link data-disabled-class="${properties.kcFormSocialAccountListButtonDisabledClass!}" id="social-${p.alias}" class="${properties.kcFormSocialAccountListButtonClass!}" aria-label="Sign in with ${p.displayName!}" type="button" href="${p.loginUrl}"><#if p.iconClasses?has_content><i class="${properties.kcCommonLogoIdP!} ${p.iconClasses!}" aria-hidden="true"></i></#if><span class="${properties.kcFormSocialAccountNameClass!}">${p.displayName!}</span></a></li>
+                        <li><a data-once-link data-disabled-class="${properties.kcFormSocialAccountListButtonDisabledClass!}" id="social-${p.alias}"
+                        class="${properties.kcFormSocialAccountListButtonClass!}" aria-label="Sign in with ${p.displayName!}" type="button" href="${p.loginUrl}">
+                        <#if p.iconClasses?has_content><i class="${properties.kcCommonLogoIdP!} ${p.iconClasses!}"
+                        aria-hidden="true"></i></#if><span class="${properties.kcFormSocialAccountNameClass!}">${p.displayName!}</span></a></li>
                     </#list>
                 </ul>
             </div>

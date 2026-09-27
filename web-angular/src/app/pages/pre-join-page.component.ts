@@ -17,7 +17,8 @@ import {SessionsHeaderComponent} from '../shared/sessions-header.component'
             <app-sessions-header [title]="meetingTitle()"/>
             <main class="mx-auto flex min-h-[calc(100vh-51px)] w-full max-w-[1360px] items-center px-5 py-8">
                 <div class="grid w-full items-stretch gap-8 md:grid-cols-[minmax(0,1fr)_374px]">
-                    <section class="relative h-full min-h-[320px] rounded-2xl border border-blue-100 bg-white/70 p-2 shadow-preview ring-1 ring-white/80">
+                    <section
+                            class="relative h-full min-h-[320px] rounded-2xl border border-blue-100 bg-white/70 p-2 shadow-preview ring-1 ring-white/80">
                         <div
                                 class="absolute inset-2 overflow-hidden rounded-xl border border-blue-200 bg-slate-200 shadow-lg shadow-blue-200/60">
                             <video #preview autoplay muted playsinline class="size-full object-cover"
@@ -33,7 +34,9 @@ import {SessionsHeaderComponent} from '../shared/sessions-header.component'
                             </span>
                         </div>
                     </section>
-                    <section class="flex h-full flex-col rounded-2xl border border-line bg-white/80 p-6 shadow-panel backdrop-blur-sm"><h1 class="text-xl font-semibold text-slate-900">Ready to join?</h1>
+                    <section
+                            class="flex h-full flex-col rounded-2xl border border-line bg-white/80 p-6 shadow-panel backdrop-blur-sm">
+                        <h1 class="text-xl font-semibold text-slate-900">Ready to join?</h1>
                         <p class="mt-1 text-sm text-muted">{{ meetingTitle() || 'Meeting' }}</p>
                         @if (countdownSeconds() > 0) {
                             <div class="mt-5 rounded-lg border border-blue-200 bg-blue-50 p-3 text-center text-sm text-blue-800">
@@ -48,11 +51,12 @@ import {SessionsHeaderComponent} from '../shared/sessions-header.component'
                                     <span class="mt-1 block text-xs text-muted">You can still join manually when the countdown ends.</span></span>
                             </label>
                         }
-                        <div class="mt-6 flex flex-1 flex-col justify-between space-y-4"><label><span class="field-label">Your name</span>
+                        <div class="mt-6 flex flex-1 flex-col justify-between space-y-4"><label><span
+                                class="field-label">Your name</span>
                             <div class="relative"><input [ngModel]="name()" (ngModelChange)="name.set($event)"
                                                          class="field-control pl-10">
-<!--                                <lucide-icon [img]="UserRound"-->
-<!--                                             class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted"/>-->
+                                <!--                                <lucide-icon [img]="UserRound"-->
+                                <!--                                             class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted"/>-->
                             </div>
                         </label><label><span class="field-label">Camera</span>
                             <div class="relative"><select [ngModel]="cameraId()"
@@ -86,22 +90,26 @@ import {SessionsHeaderComponent} from '../shared/sessions-header.component'
                             }
                             <div class="grid grid-cols-2 gap-3">
                                 <button type="button" class="btn-secondary flex items-center justify-center gap-2"
-                                        [class.border-brand]="cameraEnabled()" [class.bg-blue-50]="cameraEnabled()" [class.text-brand]="cameraEnabled()"
+                                        [class.border-brand]="cameraEnabled()" [class.bg-blue-50]="cameraEnabled()"
+                                        [class.text-brand]="cameraEnabled()"
                                         (click)="toggleCamera()">
                                     <lucide-icon [img]="cameraEnabled() ? Camera : CameraOff" class="size-4"/>
                                     {{ cameraEnabled() ? 'Camera on' : 'Camera off' }}
                                 </button>
                                 <button type="button" class="btn-secondary flex items-center justify-center gap-2"
-                                        [class.border-brand]="microphoneEnabled()" [class.bg-blue-50]="microphoneEnabled()" [class.text-brand]="microphoneEnabled()"
+                                        [class.border-brand]="microphoneEnabled()"
+                                        [class.bg-blue-50]="microphoneEnabled()"
+                                        [class.text-brand]="microphoneEnabled()"
                                         (click)="toggleMicrophone()">
                                     <lucide-icon [img]="microphoneEnabled() ? Mic : MicOff" class="size-4"/>
                                     {{ microphoneEnabled() ? 'Mic on' : 'Mic off' }}
                                 </button>
                             </div>
-                            <button class="btn-primary w-full" [disabled]="!token || !name().trim() || joining() || countdownSeconds() > 0"
+                            <button class="btn-primary w-full"
+                                    [disabled]="!token || !name().trim() || joining() || countdownSeconds() > 0"
                                     (click)="join()">{{ joining() ? 'Joining…' : countdownSeconds() > 0 ? 'Waiting for meeting…' : 'Join Meeting' }}
                             </button>
-<!--                            <button class="btn-secondary w-full" (click)="back()">Back</button>-->
+                            <!--                            <button class="btn-secondary w-full" (click)="back()">Back</button>-->
                         </div>
                     </section>
                 </div>
